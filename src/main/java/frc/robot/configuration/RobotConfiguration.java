@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.configuration;
 
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.AbsoluteEncoderConfig;
