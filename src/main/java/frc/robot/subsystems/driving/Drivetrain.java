@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.subsystems.driving;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -10,7 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj.AnalogGyro;
-import frc.robot.lib.SwerveModule;
+import frc.robot.RobotConfiguration;
 
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain {
@@ -22,10 +22,22 @@ public class Drivetrain {
     private final Translation2d m_backLeftLocation = new Translation2d(-0.381, 0.381);
     private final Translation2d m_backRightLocation = new Translation2d(-0.381, -0.381);
 
-    private final SwerveModule m_frontLeft = new SwerveModule(1, 2, 0, 1, 2, 3);
-    private final SwerveModule m_frontRight = new SwerveModule(3, 4, 4, 5, 6, 7);
-    private final SwerveModule m_backLeft = new SwerveModule(5, 6, 8, 9, 10, 11);
-    private final SwerveModule m_backRight = new SwerveModule(7, 8, 12, 13, 14, 15);
+    private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
+            RobotConfiguration.Drivetrain.ModuleConfigs.frontLeftDriveCAN,
+            RobotConfiguration.Drivetrain.ModuleConfigs.frontLeftTurnCAN,
+            RobotConfiguration.Drivetrain.ModuleConfigs.frontLeftCAO);
+    private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
+            RobotConfiguration.Drivetrain.ModuleConfigs.frontRightDriveCAN,
+            RobotConfiguration.Drivetrain.ModuleConfigs.frontRightTurnCAN,
+            RobotConfiguration.Drivetrain.ModuleConfigs.frontRightCAO);
+    private final MAXSwerveModule m_backLeft = new MAXSwerveModule(
+            RobotConfiguration.Drivetrain.ModuleConfigs.backLeftDriveCAN,
+            RobotConfiguration.Drivetrain.ModuleConfigs.backLeftTurnCAN,
+            RobotConfiguration.Drivetrain.ModuleConfigs.backLeftCAO);
+    private final MAXSwerveModule m_backRight = new MAXSwerveModule(
+            RobotConfiguration.Drivetrain.ModuleConfigs.backRightDriveCAN,
+            RobotConfiguration.Drivetrain.ModuleConfigs.backRightTurnCAN,
+            RobotConfiguration.Drivetrain.ModuleConfigs.backRightCAO);
 
     private final AnalogGyro m_gyro = new AnalogGyro(0);
 
