@@ -5,17 +5,41 @@ import com.revrobotics.spark.config.AbsoluteEncoderConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.util.Units;
+
 public class RobotConfiguration {
-    public static final class Drivetrain {
-        public static final double kWheelDiameterMeters = 0.07874;
+    // all in meters
+    public static final class ChassisConfig {
+        // Distance between centers of right and left wheels on robot
+        public static final double trackWidth = Units.inchesToMeters(26.5);
+        // Distance between front and back wheels on robot
+        public static final double wheelBase = Units.inchesToMeters(26.5);
 
-        private static final int kDrivingMotorPinionTeeth = 15;
-        public static final double kDrivingMotorReduction = (45.0 * 20) / (kDrivingMotorPinionTeeth * 15);
+        public static final double wheelDiameter = 0.07874;
+        public static final double wheelCircumferenceMeters = wheelDiameter * Math.PI;
+    }
 
-        public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
-        public static final double kDrivingMotorFreeSpeedRps = 6784 / 60; // neo motor is 5676
-        public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters)
-                / kDrivingMotorReduction;
+    public static final class DriveConfig {
+        public static final double maxSpeed = 3;
+        public static final double maxAngularSpeed = Math.PI * 2;
+
+        private static final int drivingMotorPinionTeeth = 15;
+        public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
+
+        public static final double drivingMotorFreeSpeedRps = 6784 / 60; // neo motor is 5676
+        public static final double driveWheelFreeSpeedRps = (drivingMotorFreeSpeedRps
+                * ChassisConfig.wheelCircumferenceMeters)
+                / drivingMotorReduction;
+
+        public static final int pigeonCAN = 32;
+
+        public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
+                new Translation2d(ChassisConfig.wheelBase / 2, ChassisConfig.trackWidth / 2),
+                new Translation2d(ChassisConfig.wheelBase / 2, -ChassisConfig.trackWidth / 2),
+                new Translation2d(-ChassisConfig.wheelBase / 2, ChassisConfig.trackWidth / 2),
+                new Translation2d(-ChassisConfig.wheelBase / 2, -ChassisConfig.trackWidth / 2));
 
         public static final class ModuleConfigs {
             // Angular offsets of the modules relative to the chassis in radians
@@ -42,11 +66,11 @@ public class RobotConfiguration {
 
             static {
                 // Use module constants to calculate conversion factors and feed forward gain.
-                double drivingFactor = kWheelDiameterMeters * Math.PI
-                        / kDrivingMotorReduction;
+                double drivingFactor = ChassisConfig.wheelDiameter * Math.PI
+                        / drivingMotorReduction;
                 double turningFactor = 2 * Math.PI;
                 double nominalVoltage = 12.0;
-                double drivingVelocityFeedForward = nominalVoltage / kDriveWheelFreeSpeedRps;
+                double drivingVelocityFeedForward = nominalVoltage / driveWheelFreeSpeedRps;
 
                 drivingConfig
                         .idleMode(IdleMode.kBrake)

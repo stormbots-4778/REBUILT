@@ -51,10 +51,10 @@ public class MAXSwerveModule {
         // Apply the respective configurations to the SPARKS. Reset parameters before
         // applying the configuration to bring the SPARK to a known good state. Persist
         // the settings to the SPARK to avoid losing them on a power cycle.
-        m_drivingSpark.configure(RobotConfiguration.Drivetrain.MAXSwerveModule.drivingConfig,
+        m_drivingSpark.configure(RobotConfiguration.DriveConfig.MAXSwerveModule.drivingConfig,
                 ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
-        m_turningSpark.configure(RobotConfiguration.Drivetrain.MAXSwerveModule.turningConfig,
+        m_turningSpark.configure(RobotConfiguration.DriveConfig.MAXSwerveModule.turningConfig,
                 ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
 
