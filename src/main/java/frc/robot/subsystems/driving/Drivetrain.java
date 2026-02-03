@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.driving;
 
+import com.ctre.phoenix6.hardware.Pigeon2;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -14,8 +16,8 @@ import frc.robot.configuration.RobotConfiguration;
 
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain {
-    public static final double kMaxSpeed = Math.PI; // 3 meters per second
-    public static final double kMaxAngularSpeed = Math.PI; // 1/2 rotation per second
+    public static final double kMaxSpeed = .75; // 3 meters per second our max is 6.77
+    public static final double kMaxAngularSpeed = 2*Math.PI; // 1/2 rotation per second
 
     private final Translation2d m_frontLeftLocation = new Translation2d(0.381, 0.381);
     private final Translation2d m_frontRightLocation = new Translation2d(0.381, -0.381);
@@ -39,7 +41,7 @@ public class Drivetrain {
             RobotConfiguration.Drivetrain.ModuleConfigs.backRightTurnCAN,
             RobotConfiguration.Drivetrain.ModuleConfigs.backRightCAO);
 
-    private final AnalogGyro m_gyro = new AnalogGyro(0);
+  private final Pigeon2 m_gyro = new Pigeon2(32);
 
     private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
             m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);

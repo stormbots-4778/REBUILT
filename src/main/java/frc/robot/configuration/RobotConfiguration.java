@@ -13,7 +13,7 @@ public class RobotConfiguration {
         public static final double kDrivingMotorReduction = (45.0 * 20) / (kDrivingMotorPinionTeeth * 15);
 
         public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
-        public static final double kDrivingMotorFreeSpeedRps = 5676 / 60; // neo motor is 5676
+        public static final double kDrivingMotorFreeSpeedRps = 6784 / 60; // neo motor is 5676
         public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters)
                 / kDrivingMotorReduction;
 
@@ -50,7 +50,7 @@ public class RobotConfiguration {
 
                 drivingConfig
                         .idleMode(IdleMode.kBrake)
-                        .smartCurrentLimit(50);
+                        .smartCurrentLimit(80);
                 drivingConfig.encoder
                         .positionConversionFactor(drivingFactor) // meters
                         .velocityConversionFactor(drivingFactor / 60.0); // meters per second
