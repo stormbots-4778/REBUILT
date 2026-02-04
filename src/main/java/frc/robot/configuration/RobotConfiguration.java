@@ -69,8 +69,6 @@ public class RobotConfiguration {
                 double drivingFactor = ChassisConfig.wheelDiameter * Math.PI
                         / drivingMotorReduction;
                 double turningFactor = 2 * Math.PI;
-                double nominalVoltage = 12.0;
-                double drivingVelocityFeedForward = nominalVoltage / driveWheelFreeSpeedRps;
 
                 drivingConfig
                         .idleMode(IdleMode.kBrake)
@@ -82,7 +80,7 @@ public class RobotConfiguration {
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         // These are example gains you may need to them for your own robot!
                         .pid(0.04, 0, 0)
-                        .outputRange(-1, 1).feedForward.kV(drivingVelocityFeedForward);
+                        .outputRange(-1, 1).feedForward.kV(1.98).kA(0.25);
 
                 turningConfig
                         .idleMode(IdleMode.kBrake)
