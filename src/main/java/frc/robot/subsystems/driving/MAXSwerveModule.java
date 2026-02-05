@@ -17,10 +17,9 @@ import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.configuration.RobotConfiguration.DriveConfig;
-import frc.robot.configuration.RobotConfiguration.DriveConfig.TurningMode;
+import frc.robot.configuration.RobotConfiguration;
 
-public class SwerveModule {
+public class MAXSwerveModule {
     private final SparkFlex m_drivingSpark;
     private final SparkMax m_turningSpark;
 
@@ -33,19 +32,13 @@ public class SwerveModule {
     private double m_chassisAngularOffset = 0;
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-    public void setTurningMode(TurningMode mode) {
-        m_turningSpark.configure(DriveConfig.Swerve.createTurningConfig(TurningMode.DEFAULT),
-                ResetMode.kResetSafeParameters,
-                PersistMode.kPersistParameters);
-    }
-
     /**
      * Constructs a MAXSwerveModule and configures the driving and turning motor,
      * encoder, and PID controller. This configuration is specific to the REV
      * MAXSwerve Module built with NEOs, SPARKS MAX, and a Through Bore
      * Encoder.
      */
-    public SwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset) {
+    public MAXSwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset) {
         m_drivingSpark = new SparkFlex(drivingCANId, MotorType.kBrushless);
         m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
 
@@ -58,10 +51,12 @@ public class SwerveModule {
         // Apply the respective configurations to the SPARKS. Reset parameters before
         // applying the configuration to bring the SPARK to a known good state. Persist
         // the settings to the SPARK to avoid losing them on a power cycle.
-        m_drivingSpark.configure(DriveConfig.Swerve.drivingConfig,
+        m_drivingSpark.configure(RobotConfiguration.DriveConfig.MAXSwerveModule.drivingConfig,
                 ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
-        setTurningMode(TurningMode.DEFAULT);
+        m_turningSpark.configure(RobotConfiguration.DriveConfig.MAXSwerveModule.turningConfig,
+                ResetMode.kResetSafeParameters,
+                PersistMode.kPersistParameters);
 
         m_chassisAngularOffset = chassisAngularOffset;
         m_desiredState.angle = new Rotation2d(m_turningEncoder.getPosition());
