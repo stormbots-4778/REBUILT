@@ -22,8 +22,24 @@ public class RobotConfiguration {
     }
 
     public static final class DriveConfig {
-        public static final double maxSpeed = 3;
-        public static final double maxAngularSpeed = Math.PI * 2;
+        public record TurningPID(double p, double i, double d) {
+        }
+
+        /**
+         * Configure my PID values at runtime.
+         */
+        public enum TurningMode {
+            DEFAULT(new TurningPID(1, 0, 0));
+
+            public final TurningPID pid;
+
+            TurningMode(TurningPID pid) {
+                this.pid = pid;
+            }
+        }
+
+        public static final double maxSpeed = 0.67;
+        public static final double maxAngularSpeed = Math.PI / 2;
 
         private static final int drivingMotorPinionTeeth = 15;
         public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
@@ -41,14 +57,7 @@ public class RobotConfiguration {
                 new Translation2d(-ChassisConfig.wheelBase / 2, ChassisConfig.trackWidth / 2),
                 new Translation2d(-ChassisConfig.wheelBase / 2, -ChassisConfig.trackWidth / 2));
 
-        public static final class ModuleConfigs {
-            // Angular offsets of the modules relative to the chassis in radians
-            public static final double frontLeftCAO = -Math.PI / 2;
-            public static final double frontRightCAO = 0;
-            public static final double backLeftCAO = Math.PI;
-            public static final double backRightCAO = Math.PI / 2;
-
-            // CANs
+        public static final class CAN {
             public static final int frontLeftDriveCAN = 1;
             public static final int frontRightDriveCAN = 3;
             public static final int backLeftDriveCAN = 5;
@@ -60,27 +69,13 @@ public class RobotConfiguration {
             public static final int backRightTurnCAN = 8;
         }
 
-        public static final class MAXSwerveModule {
+        public static final class Swerve {
             public static final SparkMaxConfig drivingConfig = new SparkMaxConfig();
-            public static final SparkMaxConfig turningConfig = new SparkMaxConfig();
 
-            static {
-                // Use module constants to calculate conversion factors and feed forward gain.
-                double drivingFactor = ChassisConfig.wheelDiameter * Math.PI
-                        / drivingMotorReduction;
-                double turningFactor = 2 * Math.PI;
+            private final static double turningFactor = 2 * Math.PI;
 
-                drivingConfig
-                        .idleMode(IdleMode.kBrake)
-                        .smartCurrentLimit(80);
-                drivingConfig.encoder
-                        .positionConversionFactor(drivingFactor) // meters
-                        .velocityConversionFactor(drivingFactor / 60.0); // meters per second
-                drivingConfig.closedLoop
-                        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        // These are example gains you may need to them for your own robot!
-                        .pid(0.04, 0, 0)
-                        .outputRange(-1, 1).feedForward.kV(1.98).kA(0.25);
+            public static SparkMaxConfig createTurningConfig(TurningMode mode) {
+                final var turningConfig = new SparkMaxConfig();
 
                 turningConfig
                         .idleMode(IdleMode.kBrake)
@@ -96,10 +91,11 @@ public class RobotConfiguration {
                         // V1):
                         .apply(AbsoluteEncoderConfig.Presets.REV_ThroughBoreEncoderV2);
 
+                var pid = mode.pid;
                 turningConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
                         // These are example gains you may need to them for your own robot!
-                        .pid(1, 0, 0)
+                        .pid(pid.p, pid.i, pid.d)
                         .outputRange(-1, 1)
                         // Enable PID wrap around for the turning motor. This will allow the PID
                         // controller to go through 0 to get to the setpoint i.e. going from 350 degrees
@@ -107,6 +103,26 @@ public class RobotConfiguration {
                         // longer route.
                         .positionWrappingEnabled(true)
                         .positionWrappingInputRange(0, turningFactor);
+
+                return turningConfig;
+            }
+
+            static {
+                // Use module constants to calculate conversion factors and feed forward gain.
+                double drivingFactor = ChassisConfig.wheelDiameter * Math.PI
+                        / drivingMotorReduction;
+
+                drivingConfig
+                        .idleMode(IdleMode.kBrake)
+                        .smartCurrentLimit(80);
+                drivingConfig.encoder
+                        .positionConversionFactor(drivingFactor) // meters
+                        .velocityConversionFactor(drivingFactor / 60.0); // meters per second
+                drivingConfig.closedLoop
+                        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                        // These are example gains you may need to them for your own robot!
+                        .pid(0.04, 0, 0)
+                        .outputRange(-1, 1).feedForward.kV(1.98).kA(0.25);
             }
         }
     }

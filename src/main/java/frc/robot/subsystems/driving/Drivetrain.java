@@ -18,26 +18,27 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.configuration.RobotConfiguration;
 import frc.robot.configuration.RobotConfiguration.DriveConfig;
+import frc.robot.configuration.RobotConfiguration.DriveConfig.TurningMode;
 
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain extends SubsystemBase {
     // Create MAXSwerveModules
-    private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
-            DriveConfig.ModuleConfigs.frontLeftDriveCAN,
-            DriveConfig.ModuleConfigs.frontLeftTurnCAN,
-            DriveConfig.ModuleConfigs.frontLeftCAO);
-    private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
-            DriveConfig.ModuleConfigs.frontRightDriveCAN,
-            DriveConfig.ModuleConfigs.frontRightTurnCAN,
-            DriveConfig.ModuleConfigs.frontRightCAO);
-    private final MAXSwerveModule m_backLeft = new MAXSwerveModule(
-            DriveConfig.ModuleConfigs.backLeftDriveCAN,
-            DriveConfig.ModuleConfigs.backLeftTurnCAN,
-            DriveConfig.ModuleConfigs.backLeftCAO);
-    private final MAXSwerveModule m_backRight = new MAXSwerveModule(
-            DriveConfig.ModuleConfigs.backRightDriveCAN,
-            DriveConfig.ModuleConfigs.backRightTurnCAN,
-            DriveConfig.ModuleConfigs.backRightCAO);
+    private final SwerveModule m_frontLeft = new SwerveModule(
+            DriveConfig.CAN.frontLeftDriveCAN,
+            DriveConfig.CAN.frontLeftTurnCAN,
+            -Math.PI / 2);
+    private final SwerveModule m_frontRight = new SwerveModule(
+            DriveConfig.CAN.frontRightDriveCAN,
+            DriveConfig.CAN.frontRightTurnCAN,
+            0);
+    private final SwerveModule m_backLeft = new SwerveModule(
+            DriveConfig.CAN.backLeftDriveCAN,
+            DriveConfig.CAN.backLeftTurnCAN,
+            Math.PI);
+    private final SwerveModule m_backRight = new SwerveModule(
+            DriveConfig.CAN.backRightDriveCAN,
+            DriveConfig.CAN.backRightTurnCAN,
+            Math.PI / 2);
 
     private final Pigeon2 m_gyro = new Pigeon2(DriveConfig.pigeonCAN);
 
@@ -224,5 +225,15 @@ public class Drivetrain extends SubsystemBase {
      */
     public double getHeading() {
         return getGyroDouble();
+    }
+
+    /**
+     * Set my PID values.
+     */
+    public void setTurningMode(TurningMode mode) {
+        m_frontLeft.setTurningMode(mode);
+        m_backLeft.setTurningMode(mode);
+        m_frontRight.setTurningMode(mode);
+        m_backRight.setTurningMode(mode);
     }
 }
