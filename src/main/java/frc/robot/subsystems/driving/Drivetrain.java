@@ -20,9 +20,8 @@ import frc.robot.configuration.RobotConfiguration;
 import frc.robot.configuration.RobotConfiguration.DriveConfig;
 import frc.robot.configuration.RobotConfiguration.DriveConfig.TurningMode;
 
-/** Represents a swerve drive style drivetrain. */
+/** This is how I roll. */
 public class Drivetrain extends SubsystemBase {
-    // Create MAXSwerveModules
     private final SwerveModule m_frontLeft = new SwerveModule(
             DriveConfig.CAN.frontLeftDriveCAN,
             DriveConfig.CAN.frontLeftTurnCAN,
@@ -54,7 +53,7 @@ public class Drivetrain extends SubsystemBase {
 
     double[] m_gyroAccels = { 0, 0 };
 
-    /** Creates a new DriveSubsystem. */
+    /** Let's roll. */
     public Drivetrain() {
         m_gyro.getConfigurator().apply(new Pigeon2Configuration());
         m_gyro.getYaw().setUpdateFrequency(100);
@@ -76,7 +75,6 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // Update the odometry in the periodic block
         m_odometry.update(
                 getGyroYaw(),
                 new SwerveModulePosition[] {
@@ -98,27 +96,14 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Returns the gyros yaw as a Rotation2d
-     * 
-     * @return the yaw
+     * Where am I looking?
      */
     public Rotation2d getGyroYaw() {
-        return Rotation2d.fromDegrees(getGyroDouble());
+        return Rotation2d.fromDegrees(getHeading());
     }
 
     /**
-     * Returns the gyros yaw as a double
-     * 
-     * @return the yaw
-     */
-    public double getGyroDouble() {
-        return m_gyro.getYaw().getValueAsDouble();
-    }
-
-    /**
-     * Returns the currently-estimated pose of the robot.
-     *
-     * @return The pose.
+     * Where am I?
      */
     public Pose2d getPose() {
         return m_odometry.getPoseMeters();
@@ -129,9 +114,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Resets the odometry to the specified pose.
-     *
-     * @param pose The pose to which to set the odometry.
+     * Tell me where I am.
      */
     public void resetOdometry(Pose2d pose) {
         m_odometry.resetPosition(
@@ -146,16 +129,16 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Method to drive the robot using joystick info.
+     * Tell me to go.
      *
-     * @param xSpeed        Speed of the robot in the x direction (forward).
-     * @param ySpeed        Speed of the robot in the y direction (sideways).
-     * @param rot           Angular rate of the robot.
+     * @param xSpeed        Speed in the x direction (forward).
+     * @param ySpeed        Speed in the y direction (sideways).
+     * @param rot           My angular rate.
      * @param fieldRelative Whether the provided x and y speeds are relative to the
      *                      field.
      */
     public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-        // Convert the commanded speeds into the correct units for the drivetrain
+        // Convert the commanded speeds into the correct units for my drivetrain.
         double xSpeedDelivered = xSpeed * DriveConfig.maxSpeed;
         double ySpeedDelivered = ySpeed * DriveConfig.maxSpeed;
         double rotDelivered = rot * DriveConfig.maxAngularSpeed;
@@ -173,7 +156,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Sets the wheels into an X formation to prevent movement.
+     * Set my wheels into an X formation to prevent movement.
      */
     public void setX() {
         m_frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
@@ -183,7 +166,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Sets the swerve ModuleStates.
+     * Set my swerve modules' states.
      *
      * @param desiredStates The desired SwerveModule states.
      */
@@ -205,7 +188,7 @@ public class Drivetrain extends SubsystemBase {
         };
     }
 
-    /** Resets the drive encoders to currently read a position of 0. */
+    /** Tell me I'm centered. */
     public void resetEncoders() {
         m_frontLeft.resetEncoders();
         m_backLeft.resetEncoders();
@@ -213,18 +196,18 @@ public class Drivetrain extends SubsystemBase {
         m_backRight.resetEncoders();
     }
 
-    /** Zeroes the heading of the robot. */
+    /** Tell me I'm facing forwards. */
     public void zeroHeading() {
         m_gyro.reset();
     }
 
     /**
-     * Returns the heading of the robot.
+     * Where am I looking?
      *
-     * @return the robot's heading in degrees, from -180 to 180
+     * @return My heading in degrees, from -180 to 180
      */
     public double getHeading() {
-        return getGyroDouble();
+        return m_gyro.getYaw().getValueAsDouble();
     }
 
     /**

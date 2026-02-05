@@ -12,9 +12,9 @@ import edu.wpi.first.math.util.Units;
 public class RobotConfiguration {
     // all in meters
     public static final class ChassisConfig {
-        // Distance between centers of right and left wheels on robot
+        // Distance between centers of my right and left wheels
         public static final double trackWidth = Units.inchesToMeters(26.5);
-        // Distance between front and back wheels on robot
+        // Distance between my front and back wheels
         public static final double wheelBase = Units.inchesToMeters(26.5);
 
         public static final double wheelDiameter = 0.07874;
