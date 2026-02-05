@@ -29,7 +29,8 @@ public class RobotConfiguration {
          * Configure my PID values at runtime.
          */
         public enum TurningMode {
-            DEFAULT(new TurningPID(1, 0, 0));
+            DEFAULT(new TurningPID(1, 0, 0)),
+            AUTOALIGN(new TurningPID(1, 0, 0));
 
             public final TurningPID pid;
 

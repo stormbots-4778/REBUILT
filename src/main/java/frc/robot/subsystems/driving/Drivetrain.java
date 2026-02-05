@@ -53,6 +53,8 @@ public class Drivetrain extends SubsystemBase {
 
     double[] m_gyroAccels = { 0, 0 };
 
+    private TurningMode currentTurningMode = TurningMode.DEFAULT;
+
     /** Let's roll. */
     public Drivetrain() {
         m_gyro.getConfigurator().apply(new Pigeon2Configuration());
@@ -214,6 +216,10 @@ public class Drivetrain extends SubsystemBase {
      * Set my PID values.
      */
     public void setTurningMode(TurningMode mode) {
+        if (mode == currentTurningMode)
+            return;
+        currentTurningMode = mode;
+
         m_frontLeft.setTurningMode(mode);
         m_backLeft.setTurningMode(mode);
         m_frontRight.setTurningMode(mode);
