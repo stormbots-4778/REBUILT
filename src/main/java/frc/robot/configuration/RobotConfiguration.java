@@ -22,8 +22,8 @@ public class RobotConfiguration {
     }
 
     public static final class DriveConfig {
-        public static final double maxSpeed = 3;
-        public static final double maxAngularSpeed = Math.PI * 2;
+        public static final double maxSpeed = 0.67;
+        public static final double maxAngularSpeed = Math.PI / 2;
 
         private static final int drivingMotorPinionTeeth = 15;
         public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
