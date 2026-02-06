@@ -202,7 +202,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Where am I looking?
+     * Where am I looking in degrees?
      *
      * @return My heading in degrees, from -180 to 180
      */
