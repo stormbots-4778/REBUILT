@@ -99,7 +99,7 @@ public class Drivetrain extends SubsystemBase {
      * Where am I looking?
      */
     public Rotation2d getGyroYaw() {
-        return Rotation2d.fromDegrees(getHeading());
+        return Rotation2d.fromDegrees(getHeadingDegrees());
     }
 
     /**
@@ -206,7 +206,7 @@ public class Drivetrain extends SubsystemBase {
      *
      * @return My heading in degrees, from -180 to 180
      */
-    public double getHeading() {
+    public double getHeadingDegrees() {
         return m_gyro.getYaw().getValueAsDouble();
     }
 }

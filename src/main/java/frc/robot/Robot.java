@@ -6,11 +6,12 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import frc.robot.configuration.RobotConfiguration.AutotargetingConfig;
 import frc.robot.configuration.RobotConfiguration.DriveConfig;
 import frc.robot.subsystems.driving.Drivetrain;
+import frc.robot.subsystems.vision.Limelight;
 
 public class Robot extends TimedRobot {
     private final XboxController m_controller = new XboxController(0);
@@ -21,8 +22,7 @@ public class Robot extends TimedRobot {
     private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(3);
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(3);
 
-    private final double AUTOTARGET_CORRECTION_FACTOR = 5;
-    private final Translation2d TESTING_FIXED_POINT = new Translation2d(0, -4);
+    private final Limelight m_limelight = new Limelight(Limelight.PositionTeam.BLUE, "limelight-silly");
 
     @Override
     public void autonomousPeriodic() {
@@ -31,7 +31,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
-        driveWithJoystick(true);
+        driveWithJoystick(false);
     }
 
     private void driveWithJoystick(boolean fieldRelative) {
@@ -47,7 +47,6 @@ public class Robot extends TimedRobot {
                 * DriveConfig.maxSpeed;
 
         final var rot = getNewRotation();
-        System.out.println("rotation: " + rot);
 
         m_drivetrain.drive(xSpeed, ySpeed, rot, fieldRelative);
     }
@@ -66,10 +65,6 @@ public class Robot extends TimedRobot {
                     * DriveConfig.maxAngularSpeed;
         }
 
-        final var triangle = TESTING_FIXED_POINT.minus(m_drivetrain.getPose().getTranslation());
-        final var tan = Math.atan2(triangle.getY(), triangle.getX());
-
-        final var heading = Math.toRadians(m_drivetrain.getHeading());
-        return (tan - heading) * AUTOTARGET_CORRECTION_FACTOR;
+        return m_limelight.tagAngle() * AutotargetingConfig.taperCorrectionFactor;
     }
 }

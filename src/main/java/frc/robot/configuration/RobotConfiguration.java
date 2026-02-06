@@ -10,6 +10,12 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 
 public class RobotConfiguration {
+    public static final class AutotargetingConfig {
+        // The drivetrain rotation tapers off as it approaches the target angle,
+        // resulting in it being slightly off.
+        public static final double taperCorrectionFactor = 2;
+    }
+
     // all in meters
     public static final class ChassisConfig {
         // Distance between centers of my right and left wheels
