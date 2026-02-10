@@ -10,9 +10,6 @@ import frc.robot.subsystems.driving.Drivetrain;
 import frc.robot.subsystems.vision.Limelight;
 
 public class RobotContainer {
-    public record DriveCommands(double x, double y, double r) {
-    }
-
     private final XboxController m_controller = new XboxController(0);
     private final Drivetrain m_drivetrain = new Drivetrain();
     private final Limelight m_limelight = new Limelight(Limelight.PositionTeam.BLUE, "limelight-silly");
@@ -23,13 +20,10 @@ public class RobotContainer {
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(3);
 
     public RobotContainer() {
-        m_drivetrain.setDefaultCommand(new RunCommand(() -> {
-            var dc = getDriveCommands();
-            m_drivetrain.drive(dc.x, dc.y, dc.r, false);
-        }, m_drivetrain));
+        m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
     }
 
-    private DriveCommands getDriveCommands() {
+    private void drive() {
         // Get the x speed. We are inverting this because Xbox controllers return
         // negative values when we push forward.
         final var xSpeed = -m_xspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftY(), 0.02))
@@ -53,6 +47,6 @@ public class RobotContainer {
             rotation = m_limelight.tagAngle() * AutotargetingConfig.taperCorrectionFactor;
         }
 
-        return new DriveCommands(xSpeed, ySpeed, rotation);
+        m_drivetrain.drive(xSpeed, ySpeed, rotation, false);
     }
 }
