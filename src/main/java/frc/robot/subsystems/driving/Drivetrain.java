@@ -14,6 +14,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.configuration.RobotConfiguration;
@@ -40,6 +42,7 @@ public class Drivetrain extends SubsystemBase {
             DriveConfig.ModuleConfigs.backRightCAO);
 
     private final Pigeon2 m_gyro = new Pigeon2(DriveConfig.pigeonCAN);
+    private final StructPublisher<Pose2d> positionPublisher;
 
     private final SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
             DriveConfig.kinematics,
@@ -59,6 +62,8 @@ public class Drivetrain extends SubsystemBase {
         m_gyro.getYaw().setUpdateFrequency(100);
         m_gyro.getGravityVectorZ().setUpdateFrequency(100);
         m_gyro.setYaw(0.0);
+
+        positionPublisher = NetworkTableInstance.getDefault().getStructTopic("4778BotPose", Pose2d.struct).publish();
     }
 
     public ChassisSpeeds getChassisSpeeds() {
@@ -86,6 +91,8 @@ public class Drivetrain extends SubsystemBase {
 
         m_gyroAccels[0] = m_gyro.getAccelerationX().getValueAsDouble();
         m_gyroAccels[1] = m_gyro.getAccelerationY().getValueAsDouble();
+
+        positionPublisher.set(getPose());
     }
 
     public Command resetIMU() {
