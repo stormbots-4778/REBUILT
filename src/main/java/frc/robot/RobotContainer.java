@@ -2,25 +2,31 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.configuration.FieldConfiguration;
 import frc.robot.configuration.RobotConfiguration.AutotargetingConfig;
 import frc.robot.configuration.RobotConfiguration.DriveConfig;
 import frc.robot.subsystems.driving.Drivetrain;
-import frc.robot.subsystems.vision.Limelight;
+import frc.robot.vision.Limelight;
 
 public class RobotContainer {
-    private final XboxController m_controller = new XboxController(0);
+    private final CommandXboxController m_controller = new CommandXboxController(0);
     private final Drivetrain m_drivetrain = new Drivetrain();
-    private final Limelight m_limelight = new Limelight(Limelight.PositionTeam.BLUE, "limelight-silly");
+    private final Limelight m_limelight = new Limelight("limelight-silly");
 
     // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
     private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(3);
     private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(3);
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(3);
 
+    private static final boolean USE_FIELD_RELATIVE = true;
+
     public RobotContainer() {
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
+        m_controller.y().onTrue(new InstantCommand(this::relocalize, m_drivetrain));
     }
 
     /**
@@ -39,7 +45,7 @@ public class RobotContainer {
                 * DriveConfig.maxSpeed;
 
         double rotation;
-        if (!m_controller.getBButton()) {
+        if (!m_controller.b().getAsBoolean()) {
             // Get the rate of angular rotation. We are inverting this because we want a
             // positive value when we pull to the left (remember, CCW is positive in
             // mathematics). Xbox controllers return positive values when you pull to
@@ -47,9 +53,38 @@ public class RobotContainer {
             rotation = -m_rotLimiter.calculate(MathUtil.applyDeadband(m_controller.getRightX(), 0.02))
                     * DriveConfig.maxAngularSpeed;
         } else {
-            rotation = m_limelight.tagAngle() * AutotargetingConfig.taperCorrectionFactor;
+            rotation = rotationToCoordinate(FieldConfiguration.RED_GOAL_CENTER)
+                    * AutotargetingConfig.taperCorrectionFactor;
         }
 
-        m_drivetrain.drive(xSpeed, ySpeed, rotation, false);
+        m_drivetrain.drive(xSpeed, ySpeed, rotation, USE_FIELD_RELATIVE);
+    }
+
+    /**
+     * What do I need to rotate by to point to a coordinate on the field?
+     */
+    private double rotationToCoordinate(Translation2d fieldCoord) {
+        final var triangle = fieldCoord.minus(m_drivetrain.getPose().getTranslation());
+
+        var tan = Math.atan2(triangle.getY(), triangle.getX());
+        tan = normalizeRadian(tan);
+
+        var heading = Math.toRadians(m_drivetrain.getHeadingDegrees());
+        heading = normalizeRadian(heading);
+
+        return tan - heading;
+    }
+
+    private void relocalize() {
+        m_drivetrain.setPose(m_limelight.getBotPose(m_drivetrain.getHeadingDegrees()));
+    }
+
+    public static final double TWOPI = Math.PI * 2;
+
+    /**
+     * Takes a radian value and ensures it's in the range [-PI, PI] ([-180deg, 180deg])
+     */
+    private double normalizeRadian(double rad) {
+        return ((rad % TWOPI) + TWOPI) % TWOPI - Math.PI;
     }
 }
