@@ -1,9 +1,14 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -23,11 +28,16 @@ public class RobotContainer {
     private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(3);
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(3);
 
+    private final SendableChooser<Command> autoChooser;
+
     private static final boolean USE_FIELD_RELATIVE = true;
 
     public RobotContainer() {
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
         m_controller.y().onTrue(new InstantCommand(this::relocalize, m_drivetrain));
+
+        autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.putData(autoChooser);
     }
 
     /**
@@ -93,5 +103,9 @@ public class RobotContainer {
      */
     private double normalizeRadian(double rad) {
         return ((rad % TWOPI) + TWOPI) % TWOPI - Math.PI;
+    }
+
+    public Command getAutonomousCommand() {
+        return autoChooser.getSelected();
     }
 }
