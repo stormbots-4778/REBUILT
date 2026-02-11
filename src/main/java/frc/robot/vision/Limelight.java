@@ -15,6 +15,8 @@ public class Limelight {
     public Pose2d getBotPose(double headingDegrees) {
         // LimelightHelpers.SetRobotOrientation(name, headingDegrees, 0, 0, 0, 0, 0);
         var estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
+        if (estimate.tagCount == 0)
+            return null;
         return estimate.pose;
     }
 

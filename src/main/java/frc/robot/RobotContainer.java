@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -33,6 +34,8 @@ public class RobotContainer {
      * I like to move it move it
      */
     private void drive() {
+        relocalize();
+
         // Get the x speed. We are inverting this because Xbox controllers return
         // negative values when we push forward.
         final var xSpeed = -m_xspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftY(), 0.02))
@@ -76,13 +79,17 @@ public class RobotContainer {
     }
 
     private void relocalize() {
-        m_drivetrain.setPose(m_limelight.getBotPose(m_drivetrain.getHeadingDegrees()));
+        Pose2d newPose = m_limelight.getBotPose(m_drivetrain.getHeadingDegrees());
+        if (newPose == null)
+            return;
+        m_drivetrain.setPose(newPose);
     }
 
     public static final double TWOPI = Math.PI * 2;
 
     /**
-     * Takes a radian value and ensures it's in the range [-PI, PI] ([-180deg, 180deg])
+     * Takes a radian value and ensures it's in the range [-PI, PI] ([-180deg,
+     * 180deg])
      */
     private double normalizeRadian(double rad) {
         return ((rad % TWOPI) + TWOPI) % TWOPI - Math.PI;
