@@ -44,17 +44,9 @@ public class RobotContainer {
      * I like to move it move it
      */
     private void drive() {
-        relocalize();
-
-        // Get the x speed. We are inverting this because Xbox controllers return
-        // negative values when we push forward.
-        final var xSpeed = -m_xspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftY(), 0.02))
+        final var xSpeed = m_xspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftY(), 0.02))
                 * DriveConfig.maxSpeed;
-
-        // Get the y speed or sideways/strafe speed. We are inverting this because
-        // we want a positive value when we pull to the left. Xbox controllers
-        // return positive values when you pull to the right by default.
-        final var ySpeed = -m_yspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftX(), 0.02))
+        final var ySpeed = m_yspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftX(), 0.02))
                 * DriveConfig.maxSpeed;
 
         double rotation;
@@ -73,6 +65,8 @@ public class RobotContainer {
         m_drivetrain.drive(xSpeed, ySpeed, rotation, USE_FIELD_RELATIVE);
     }
 
+    private static final double TWOPI = 2 * Math.PI;
+
     /**
      * What do I need to rotate by to point to a coordinate on the field?
      */
@@ -80,12 +74,8 @@ public class RobotContainer {
         final var triangle = fieldCoord.minus(m_drivetrain.getPose().getTranslation());
 
         var tan = Math.atan2(triangle.getY(), triangle.getX());
-        tan = normalizeRadian(tan);
-
         var heading = Math.toRadians(m_drivetrain.getHeadingDegrees());
-        heading = normalizeRadian(heading);
-
-        return tan - heading;
+        return (tan - heading) % TWOPI;
     }
 
     private void relocalize() {
@@ -93,16 +83,6 @@ public class RobotContainer {
         if (newPose == null)
             return;
         m_drivetrain.setPose(newPose);
-    }
-
-    public static final double TWOPI = Math.PI * 2;
-
-    /**
-     * Takes a radian value and ensures it's in the range [-PI, PI] ([-180deg,
-     * 180deg])
-     */
-    private double normalizeRadian(double rad) {
-        return ((rad % TWOPI) + TWOPI) % TWOPI - Math.PI;
     }
 
     public Command getAutonomousCommand() {
