@@ -86,8 +86,8 @@ public class Drivetrain extends SubsystemBase {
                 this::getChassisSpeeds,
                 this::setChassisSpeeds,
                 new PPHolonomicDriveController(
-                        new PIDConstants(5.0, 0.0, 0.0),
-                        new PIDConstants(5.0, 0.0, 0.0)),
+                        new PIDConstants(30, 0, 0.01),
+                        new PIDConstants(4, 0.1, 0)),
                 config,
                 () -> {
                     var alliance = DriverStation.getAlliance();

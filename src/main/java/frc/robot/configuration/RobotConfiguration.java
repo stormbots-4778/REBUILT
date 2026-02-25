@@ -23,12 +23,12 @@ public class RobotConfiguration {
         // Distance between my front and back wheels
         public static final double wheelBase = Units.inchesToMeters(26.5);
 
-        public static final double wheelDiameter = 0.07874;
+        public static final double wheelDiameter = 0.074;
         public static final double wheelCircumferenceMeters = wheelDiameter * Math.PI;
     }
 
     public static final class DriveConfig {
-        public static final double maxSpeed = 0.67;
+        public static final double maxSpeed = 1;
         public static final double maxAngularSpeed = Math.PI / 2;
 
         private static final int drivingMotorPinionTeeth = 15;
