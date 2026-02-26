@@ -5,6 +5,8 @@ import com.revrobotics.spark.config.AbsoluteEncoderConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
@@ -115,5 +117,10 @@ public class RobotConfiguration {
                         .positionWrappingInputRange(0, turningFactor);
             }
         }
+    }
+
+    public static final class VisionConfig {
+        public static final String cam1name = "right";
+        public static final Transform3d cam1offset = new Transform3d(0, 0, 0.4, new Rotation3d(0, 0, 0));
     }
 }

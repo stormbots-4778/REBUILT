@@ -4,7 +4,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -16,12 +16,12 @@ import frc.robot.configuration.FieldConfiguration;
 import frc.robot.configuration.RobotConfiguration.AutotargetingConfig;
 import frc.robot.configuration.RobotConfiguration.DriveConfig;
 import frc.robot.subsystems.driving.Drivetrain;
-import frc.robot.vision.Limelight;
+import frc.robot.vision.Photon;
 
 public class RobotContainer {
     private final CommandXboxController m_controller = new CommandXboxController(0);
     private final Drivetrain m_drivetrain = new Drivetrain();
-    private final Limelight m_limelight = new Limelight("limelight-silly");
+    private final Photon m_photon = new Photon();
 
     // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
     private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(3);
@@ -79,11 +79,12 @@ public class RobotContainer {
     }
 
     private void relocalize() {
-        Pose2d newPose = m_limelight.getBotPose(m_drivetrain.getHeadingDegrees());
+        Pose3d newPose = m_photon.getBotPose();
         if (newPose == null)
             return;
-        m_drivetrain.setPose(newPose);
+        m_drivetrain.setPose(newPose.toPose2d());
     }
+
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
