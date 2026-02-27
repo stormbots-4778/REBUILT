@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.0,
-        "y": 5.5
+        "x": 1.0,
+        "y": 5.95
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.0,
-        "y": 5.5
+        "x": 2.0,
+        "y": 5.95
       },
       "isLocked": false,
-      "linkedName": "Top Bump"
+      "linkedName": "Depot Edge"
     },
     {
       "anchor": {
@@ -20,7 +20,7 @@
         "y": 5.5
       },
       "prevControl": {
-        "x": 4.25,
+        "x": 2.25,
         "y": 5.5
       },
       "nextControl": null,
@@ -47,7 +47,7 @@
   "reversed": false,
   "folder": null,
   "idealStartingState": {
-    "velocity": 1.0,
+    "velocity": 0,
     "rotation": 180.0
   },
   "useDefaultConstraints": true

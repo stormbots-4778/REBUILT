@@ -3,45 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.5,
-        "y": 7.5
+        "x": 3.25,
+        "y": 2.5
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.207106781186548,
-        "y": 6.792893218813452
+        "x": 2.5428932188134525,
+        "y": 1.7928932188134525
       },
       "isLocked": false,
-      "linkedName": "Top of Center Line"
+      "linkedName": "Shoot Point Bottom"
     },
     {
       "anchor": {
-        "x": 7.669660107334526,
-        "y": 2.3718962432915918
+        "x": 0.5,
+        "y": 0.65
       },
       "prevControl": {
-        "x": 7.620983899821109,
-        "y": 4.010661896243291
-      },
-      "nextControl": {
-        "x": 7.72155429782436,
-        "y": 0.6247918301338138
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 5.0,
-        "y": 0.5
-      },
-      "prevControl": {
-        "x": 6.033881932021467,
-        "y": 0.4897495527728085
+        "x": 1.5236521597007044,
+        "y": 0.6499999999999999
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Bottom of Goal Line"
+      "linkedName": "Human Player"
     }
   ],
   "rotationTargets": [],
@@ -64,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 50.0
   },
   "useDefaultConstraints": true
 }
