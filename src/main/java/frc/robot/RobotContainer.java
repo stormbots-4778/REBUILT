@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.configuration.FieldConfiguration;
-import frc.robot.configuration.RobotConfiguration.AutotargetingConfig;
 import frc.robot.configuration.RobotConfiguration.DriveConfig;
 import frc.robot.subsystems.driving.Drivetrain;
 import frc.robot.vision.Photon;
@@ -31,6 +30,8 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
 
     private static final boolean USE_FIELD_RELATIVE = true;
+    // The drivetrain rotation tapers off as it approaches the target angle.
+    public static final double AUTOTARGET_TAPER_CORRECTION = 2;
 
     public RobotContainer() {
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
@@ -59,7 +60,7 @@ public class RobotContainer {
                     * DriveConfig.maxAngularSpeed;
         } else {
             rotation = rotationToCoordinate(FieldConfiguration.RED_GOAL_CENTER)
-                    * AutotargetingConfig.taperCorrectionFactor;
+                    * AUTOTARGET_TAPER_CORRECTION;
         }
 
         m_drivetrain.drive(xSpeed, ySpeed, rotation, USE_FIELD_RELATIVE);
@@ -84,7 +85,6 @@ public class RobotContainer {
             return;
         m_drivetrain.setPose(newPose.toPose2d());
     }
-
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
