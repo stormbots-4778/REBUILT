@@ -56,8 +56,8 @@ public class RobotConfiguration {
             public static final int backLeftDriveCAN = 5;
             public static final int backRightDriveCAN = 7;
 
-            public static final int frontLeftTurnCAN = 2;
-            public static final int frontRightTurnCAN = 4;
+            public static final int frontLeftTurnCAN = 10;
+            public static final int frontRightTurnCAN = 14;
             public static final int backLeftTurnCAN = 6;
             public static final int backRightTurnCAN = 8;
         }
@@ -65,6 +65,7 @@ public class RobotConfiguration {
         public static final class MAXSwerveModule {
             public static final SparkMaxConfig drivingConfig = new SparkMaxConfig();
             public static final SparkMaxConfig turningConfig = new SparkMaxConfig();
+            public static final SparkMaxConfig turningConfigFR = new SparkMaxConfig(); // front right motor is tight, use separate pid
 
             static {
                 // Use module constants to calculate conversion factors and feed forward gain.
@@ -109,7 +110,94 @@ public class RobotConfiguration {
                         // longer route.
                         .positionWrappingEnabled(true)
                         .positionWrappingInputRange(0, turningFactor);
+                        
+                turningConfigFR
+                        .idleMode(IdleMode.kBrake)
+                        .smartCurrentLimit(20);
+
+                turningConfigFR.absoluteEncoder
+                        // Invert the turning encoder, since the output shaft rotates in the opposite
+                        // direction of the steering motor in the MAXSwerve Module.
+                        .inverted(true)
+                        .positionConversionFactor(turningFactor) // radians
+                        .velocityConversionFactor(turningFactor / 60.0) // radians per second
+                        // This applies to REV Through Bore Encoder V2 (use REV_ThroughBoreEncoder for
+                        // V1):
+                        .apply(AbsoluteEncoderConfig.Presets.REV_ThroughBoreEncoderV2);
+
+                turningConfigFR.closedLoop
+                        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+                        // These are example gains you may need to them for your own robot!
+                        .pid(4, 0, 0)
+                        .outputRange(-1, 1)
+                        // Enable PID wrap around for the turning motor. This will allow the PID
+                        // controller to go through 0 to get to the setpoint i.e. going from 350 degrees
+                        // to 10 degrees will go through 0 rather than the other direction which is a
+                        // longer route.
+                        .positionWrappingEnabled(true)
+                        .positionWrappingInputRange(0, turningFactor);
             }
+        }
+    }
+
+    public static final class ShooterConfig {
+        public static final int flywheel1CAN = 9;
+        public static final int flywheel2CAN = 11;
+        public static final int hood1Port = 0;
+        public static final int hood2Port = 1;
+        public static final int kickwheelCAN = 13;
+        public static final int indexerCAN = 4;
+
+        public static final SparkMaxConfig flywheelConfig = new SparkMaxConfig();
+        public static final SparkMaxConfig kickwheelConfig = new SparkMaxConfig();
+        public static final SparkMaxConfig indexerConfig = new SparkMaxConfig();
+
+        static {
+            flywheelConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.00015, 0.0000002, 0)
+                    .outputRange(-1, 1)
+                    .iZone(200);
+            flywheelConfig.closedLoop.feedForward.kV(0.0023);
+            flywheelConfig.smartCurrentLimit(60);
+
+            kickwheelConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.05, 0, 0)
+                    .outputRange(-1, 1);
+            kickwheelConfig.smartCurrentLimit(10);
+
+            indexerConfig.smartCurrentLimit(40);
+        }
+    }
+
+    public static final class IntakeConfig {
+        public static final int intakerCAN = 15;
+        public static final int pivotCAN = 16;
+        public static final int conveyorCAN = 17;
+
+        public static final SparkMaxConfig intakerConfig = new SparkMaxConfig();
+        public static final SparkMaxConfig pivotConfig = new SparkMaxConfig();
+        public static final SparkMaxConfig conveyorConfig = new SparkMaxConfig();
+
+        static {
+            intakerConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.05, 0, 0)
+                    .outputRange(-1, 1);
+            intakerConfig.smartCurrentLimit(10);
+
+            pivotConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.05, 0, 0)
+                    .outputRange(-1, 1);
+            pivotConfig.smartCurrentLimit(10);
+
+            conveyorConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.05, 0, 0)
+                    .outputRange(-1, 1);
+            conveyorConfig.smartCurrentLimit(10);
         }
     }
 

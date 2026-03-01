@@ -32,19 +32,23 @@ public class Drivetrain extends SubsystemBase {
     private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
             DriveConfig.ModuleConfigs.frontLeftDriveCAN,
             DriveConfig.ModuleConfigs.frontLeftTurnCAN,
-            DriveConfig.ModuleConfigs.frontLeftCAO);
+            DriveConfig.ModuleConfigs.frontLeftCAO,
+            RobotConfiguration.DriveConfig.MAXSwerveModule.turningConfig);
     private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
             DriveConfig.ModuleConfigs.frontRightDriveCAN,
             DriveConfig.ModuleConfigs.frontRightTurnCAN,
-            DriveConfig.ModuleConfigs.frontRightCAO);
+            DriveConfig.ModuleConfigs.frontRightCAO,
+            RobotConfiguration.DriveConfig.MAXSwerveModule.turningConfigFR);
     private final MAXSwerveModule m_backLeft = new MAXSwerveModule(
             DriveConfig.ModuleConfigs.backLeftDriveCAN,
             DriveConfig.ModuleConfigs.backLeftTurnCAN,
-            DriveConfig.ModuleConfigs.backLeftCAO);
+            DriveConfig.ModuleConfigs.backLeftCAO,
+            RobotConfiguration.DriveConfig.MAXSwerveModule.turningConfig);
     private final MAXSwerveModule m_backRight = new MAXSwerveModule(
             DriveConfig.ModuleConfigs.backRightDriveCAN,
             DriveConfig.ModuleConfigs.backRightTurnCAN,
-            DriveConfig.ModuleConfigs.backRightCAO);
+            DriveConfig.ModuleConfigs.backRightCAO,
+            RobotConfiguration.DriveConfig.MAXSwerveModule.turningConfig);
 
     private final Pigeon2 m_gyro = new Pigeon2(DriveConfig.pigeonCAN);
     private final StructPublisher<Pose2d> positionPublisher;

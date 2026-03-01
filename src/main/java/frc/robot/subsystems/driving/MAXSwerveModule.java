@@ -12,6 +12,7 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -38,7 +39,7 @@ public class MAXSwerveModule {
      * MAXSwerve Module built with NEOs, SPARKS MAX, and a Through Bore
      * Encoder.
      */
-    public MAXSwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset) {
+    public MAXSwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset, SparkBaseConfig turningConfig) {
         m_drivingSpark = new SparkFlex(drivingCANId, MotorType.kBrushless);
         m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
 
@@ -54,7 +55,7 @@ public class MAXSwerveModule {
         m_drivingSpark.configure(RobotConfiguration.DriveConfig.MAXSwerveModule.drivingConfig,
                 ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
-        m_turningSpark.configure(RobotConfiguration.DriveConfig.MAXSwerveModule.turningConfig,
+        m_turningSpark.configure(turningConfig,
                 ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
 

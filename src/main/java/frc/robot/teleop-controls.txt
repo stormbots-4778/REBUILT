@@ -1,0 +1,8 @@
+ ========== controls ========== 
+
+right trigger ..... feed shooter
+pov right ......... deploy intaker
+pov left .......... retract intaker
+right bumper ...... intake
+left bumper ....... outtake
+X ................. autotarget

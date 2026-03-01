@@ -1,6 +1,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -9,18 +10,21 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.configuration.FieldConfiguration;
 import frc.robot.configuration.RobotConfiguration.DriveConfig;
 import frc.robot.subsystems.driving.Drivetrain;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.shooting.Shooters;
 import frc.robot.vision.Photon;
 
 public class RobotContainer {
     private final CommandXboxController m_controller = new CommandXboxController(0);
     private final Drivetrain m_drivetrain = new Drivetrain();
     private final Photon m_photon = new Photon();
+    private final Shooters m_shooter = new Shooters();
+    private final Intake m_intake = new Intake();
 
     // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
     private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(3);
@@ -31,52 +35,87 @@ public class RobotContainer {
 
     private static final boolean USE_FIELD_RELATIVE = true;
     // The drivetrain rotation tapers off as it approaches the target angle.
-    public static final double AUTOTARGET_TAPER_CORRECTION = 2;
+    private static final double AUTOTARGET_CORRECTION_FACTOR = 2;
+
+    private static final double HOOD_POSITION_FOR_AUTO = 0.5;
+
+    private static final Translation2d GOAL_POSITION = FieldConfiguration.RED_GOAL_CENTER;
 
     public RobotContainer() {
+        configureNamedCommands();
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
-        m_controller.y().onTrue(new InstantCommand(this::relocalize, m_drivetrain));
-
+        m_shooter.setDefaultCommand(m_shooter.shootWithDistance(() -> distanceFromCoordinate(GOAL_POSITION)));
+        configureButtonBindings();
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData(autoChooser);
+    }
+
+    private void configureNamedCommands() {
+        NamedCommands.registerCommand("Activate Hood", m_shooter.setHood(HOOD_POSITION_FOR_AUTO));
+        NamedCommands.registerCommand("Deactivate Hood", m_shooter.setHood(0));
+        NamedCommands.registerCommand("Feed Shooter", m_shooter.feed());
+        NamedCommands.registerCommand("Start Intaking", m_intake.startIntaking());
+        NamedCommands.registerCommand("Stop Intaking", m_intake.stopIntaking());
+        NamedCommands.registerCommand("Deploy Intaker", m_intake.deploy());
+        NamedCommands.registerCommand("Retract Intaker", m_intake.retract());
+    }
+
+    private void configureButtonBindings() {
+        m_controller.rightTrigger().whileTrue(m_shooter.feed());
+        m_controller.rightBumper().whileTrue(m_intake.intake());
+        m_controller.leftBumper().whileTrue(m_intake.outtake());
+        m_controller.povRight().onTrue(m_intake.deploy());
+        m_controller.povLeft().onTrue(m_intake.retract());
     }
 
     /**
      * I like to move it move it
      */
     private void drive() {
+        relocalize();
+
         final var xSpeed = m_xspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftY(), 0.02))
                 * DriveConfig.maxSpeed;
         final var ySpeed = m_yspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftX(), 0.02))
                 * DriveConfig.maxSpeed;
 
-        double rotation;
-        if (!m_controller.b().getAsBoolean()) {
-            // Get the rate of angular rotation. We are inverting this because we want a
-            // positive value when we pull to the left (remember, CCW is positive in
-            // mathematics). Xbox controllers return positive values when you pull to
-            // the right by default.
-            rotation = -m_rotLimiter.calculate(MathUtil.applyDeadband(m_controller.getRightX(), 0.02))
-                    * DriveConfig.maxAngularSpeed;
-        } else {
-            rotation = rotationToCoordinate(FieldConfiguration.RED_GOAL_CENTER)
-                    * AUTOTARGET_TAPER_CORRECTION;
-        }
+        double rotation = m_controller.x().getAsBoolean() ? autotargetRotation() : driverRotation();
 
         m_drivetrain.drive(xSpeed, ySpeed, rotation, USE_FIELD_RELATIVE);
     }
 
-    private static final double TWOPI = 2 * Math.PI;
+    /**
+     * How much do y'all want me to turn by?
+     */
+    private double driverRotation() {
+        return -m_rotLimiter.calculate(MathUtil.applyDeadband(m_controller.getRightX(), 0.02))
+                * DriveConfig.maxAngularSpeed;
+    }
+
+    /**
+     * How much does autotargeting want me to turn by?
+     */
+    private double autotargetRotation() {
+        return rotationToCoordinate(GOAL_POSITION)
+                * AUTOTARGET_CORRECTION_FACTOR;
+    }
+
+    /**
+     * How far away am I from a coordinate on the field?
+     */
+    private double distanceFromCoordinate(Translation2d fieldCoord) {
+        final var triangle = fieldCoord.minus(m_drivetrain.getPose().getTranslation());
+        return triangle.getNorm();
+    }
 
     /**
      * What do I need to rotate by to point to a coordinate on the field?
      */
     private double rotationToCoordinate(Translation2d fieldCoord) {
-        final var triangle = fieldCoord.minus(m_drivetrain.getPose().getTranslation());
-
-        var tan = Math.atan2(triangle.getY(), triangle.getX());
-        var heading = Math.toRadians(m_drivetrain.getHeadingDegrees());
-        return (tan - heading) % TWOPI;
+        final var delta = fieldCoord.minus(m_drivetrain.getPose().getTranslation());
+        var targetAngle = Math.atan2(delta.getY(), delta.getX());
+        var robotHeading = Math.toRadians(m_drivetrain.getHeadingDegrees());
+        return MathUtil.angleModulus(targetAngle - robotHeading);
     }
 
     private void relocalize() {
