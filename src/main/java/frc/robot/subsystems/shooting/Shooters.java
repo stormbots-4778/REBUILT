@@ -1,5 +1,6 @@
 package frc.robot.subsystems.shooting;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import com.revrobotics.PersistMode;
@@ -7,13 +8,15 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.configuration.RobotConfiguration;
+import frc.robot.subsystems.intake.Intake;
 
 public class Shooters extends SubsystemBase {
     private static SparkMax setupSpark(int can, SparkMaxConfig config) {
@@ -22,14 +25,14 @@ public class Shooters extends SubsystemBase {
         return m;
     }
 
-    private static class DoubleSparkMax {
+    private static class DoubleShooterSparks {
         private final SparkMax motor1;
         public final SparkClosedLoopController motor1Controller;
         private final SparkMax motor2;
         public final SparkClosedLoopController motor2Controller;
         private final ControlType controlType;
 
-        public DoubleSparkMax(int can1, int can2, SparkMaxConfig config, ControlType controlType) {
+        public DoubleShooterSparks(int can1, int can2, SparkMaxConfig config, ControlType controlType) {
             motor1 = setupSpark(can1, config);
             motor1Controller = motor1.getClosedLoopController();
             motor2 = setupSpark(can2, config);
@@ -38,7 +41,7 @@ public class Shooters extends SubsystemBase {
         }
 
         public void set(double value) {
-            motor1Controller.setSetpoint(value, controlType);
+            motor1Controller.setSetpoint(-value, controlType);
             motor2Controller.setSetpoint(value, controlType);
         }
     }
@@ -53,23 +56,21 @@ public class Shooters extends SubsystemBase {
         }
 
         public void setAngle(double degrees) {
-            servo1.setAngle(degrees);
-            servo2.setAngle(degrees);
+            servo1.setAngle(90 - degrees);
+            servo2.setAngle(90 - -degrees);
         }
     }
 
-    private final DoubleSparkMax flywheels;
+    private final DoubleShooterSparks flywheels;
     private final DoubleServo hoods;
 
     private final SparkMax kickwheelMotor;
     private final SparkClosedLoopController kickwheelController;
-    private static final double KICKWHEEL_RPM = 600;
     private final SparkMax indexerMotor;
     private final SparkClosedLoopController indexerController;
-    private static final double INDEXER_RPM = 600;
 
     public Shooters() {
-        flywheels = new DoubleSparkMax(
+        flywheels = new DoubleShooterSparks(
                 RobotConfiguration.ShooterConfig.flywheel1CAN,
                 RobotConfiguration.ShooterConfig.flywheel2CAN,
                 RobotConfiguration.ShooterConfig.flywheelConfig,
@@ -78,7 +79,7 @@ public class Shooters extends SubsystemBase {
 
         hoods = new DoubleServo(
                 RobotConfiguration.ShooterConfig.hood1Port,
-                RobotConfiguration.ShooterConfig.hood1Port);
+                RobotConfiguration.ShooterConfig.hood2Port);
 
         kickwheelMotor = setupSpark(RobotConfiguration.ShooterConfig.kickwheelCAN,
                 RobotConfiguration.ShooterConfig.kickwheelConfig);
@@ -93,14 +94,30 @@ public class Shooters extends SubsystemBase {
         controller.setSetpoint(velocity, ControlType.kVelocity);
     }
 
-    public Command feed() {
-        return runEnd(() -> {
-            setVelocity(kickwheelController, KICKWHEEL_RPM);
-            setVelocity(indexerController, INDEXER_RPM);
-        }, () -> {
-            setVelocity(kickwheelController, 0);
-            setVelocity(indexerController, 0);
-        });
+    private static final double KICKWHEEL_AT_SPEED_THRESHOLD = 750;
+
+    private boolean kickwheelAtSpeed() {
+        return Math.abs(kickwheelMotor.getEncoder().getVelocity())
+                + KICKWHEEL_AT_SPEED_THRESHOLD > RobotConfiguration.ShooterConfig.KICKWHEEL_RPM;
+    }
+
+    public Command outtakeIndexer() {
+        return run(() -> setVelocity(indexerController, -RobotConfiguration.ShooterConfig.INDEXER_KICKOUT_RPM));
+    }
+
+    public Command feed(Intake intake) {
+        return run(() -> setVelocity(kickwheelController, -RobotConfiguration.ShooterConfig.KICKWHEEL_RPM))
+                .alongWith(
+                        new WaitUntilCommand(this::kickwheelAtSpeed).andThen(
+                                () -> {
+                                    setVelocity(indexerController,
+                                            -RobotConfiguration.ShooterConfig.INDEXER_RPM);
+                                }))
+                .alongWith(intake.runConveyorShoot)
+                .finallyDo(() -> {
+                    setVelocity(indexerController, 0);
+                    setVelocity(kickwheelController, 0);
+                });
     }
 
     // for auto
@@ -113,16 +130,18 @@ public class Shooters extends SubsystemBase {
     }
 
     // for teleop
-    public Command shootWithDistance(DoubleSupplier distanceSupplier) {
-        return runEnd(() -> {
-            // double distance = distanceSupplier.getAsDouble();
-            // flywheels.set(ShootingDistanceTables.shooter.get(distance));
-            // hoods.set(ShootingDistanceTables.hood.get(distance));
-            flywheels.set(2000);
-            hoods.setAngle(45);
-        }, () -> {
-            flywheels.set(500);
-            hoods.setAngle(0);
+    public Command shootWithDistance(DoubleSupplier distanceSupplier, BooleanSupplier enableHood) {
+        return run(() -> {
+            double distance = distanceSupplier.getAsDouble();
+            Double shootval = ShootingDistanceTables.shooter.get(distance);
+            flywheels.set(shootval);
+
+            if (enableHood.getAsBoolean()) {
+                Double hoodval = ShootingDistanceTables.hood.get(distance);
+                hoods.setAngle(hoodval);
+            } else {
+                hoods.setAngle(0);
+            }
         });
     }
 }

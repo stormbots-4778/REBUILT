@@ -1,11 +1,9 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -17,12 +15,12 @@ import frc.robot.configuration.RobotConfiguration.DriveConfig;
 import frc.robot.subsystems.driving.Drivetrain;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooting.Shooters;
-import frc.robot.vision.Photon;
+import frc.robot.subsystems.vision.Vision;
 
 public class RobotContainer {
     private final CommandXboxController m_controller = new CommandXboxController(0);
     private final Drivetrain m_drivetrain = new Drivetrain();
-    private final Photon m_photon = new Photon();
+    private final Vision m_vision = new Vision();
     private final Shooters m_shooter = new Shooters();
     private final Intake m_intake = new Intake();
 
@@ -37,42 +35,48 @@ public class RobotContainer {
     // The drivetrain rotation tapers off as it approaches the target angle.
     private static final double AUTOTARGET_CORRECTION_FACTOR = 2;
 
-    private static final double HOOD_POSITION_FOR_AUTO = 0.5;
-
     private static final Translation2d GOAL_POSITION = FieldConfiguration.RED_GOAL_CENTER;
 
     public RobotContainer() {
         configureNamedCommands();
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
-        m_shooter.setDefaultCommand(m_shooter.shootWithDistance(() -> distanceFromCoordinate(GOAL_POSITION)));
+        m_shooter.setDefaultCommand(
+                m_shooter.shootWithDistance(
+                        () -> distanceFromCoordinate(GOAL_POSITION),
+                        m_controller.x().or(m_controller.rightTrigger())));
         configureButtonBindings();
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData(autoChooser);
     }
 
     private void configureNamedCommands() {
-        NamedCommands.registerCommand("Activate Hood", m_shooter.setHood(HOOD_POSITION_FOR_AUTO));
-        NamedCommands.registerCommand("Deactivate Hood", m_shooter.setHood(0));
-        NamedCommands.registerCommand("Feed Shooter", m_shooter.feed());
-        NamedCommands.registerCommand("Start Intaking", m_intake.startIntaking());
-        NamedCommands.registerCommand("Stop Intaking", m_intake.stopIntaking());
-        NamedCommands.registerCommand("Deploy Intaker", m_intake.deploy());
-        NamedCommands.registerCommand("Retract Intaker", m_intake.retract());
+        // NamedCommands.registerCommand("Activate Hood",
+        // m_shooter.setHood(HOOD_POSITION_FOR_AUTO));
+        // NamedCommands.registerCommand("Deactivate Hood", m_shooter.setHood(0));
+        // NamedCommands.registerCommand("Feed Shooter", m_shooter.feed());
+        // NamedCommands.registerCommand("Start Intaking", m_intake.startIntaking());
+        // NamedCommands.registerCommand("Stop Intaking", m_intake.stopIntaking());
+        // NamedCommands.registerCommand("Deploy Intaker", m_intake.deploy());
+        // NamedCommands.registerCommand("Retract Intaker", m_intake.retract());
     }
 
     private void configureButtonBindings() {
-        m_controller.rightTrigger().whileTrue(m_shooter.feed());
-        m_controller.rightBumper().whileTrue(m_intake.intake());
-        m_controller.leftBumper().whileTrue(m_intake.outtake());
-        m_controller.povRight().onTrue(m_intake.deploy());
-        m_controller.povLeft().onTrue(m_intake.retract());
+        m_controller.leftTrigger().whileTrue(m_intake.intake(m_shooter));
+        m_controller.rightBumper().whileTrue(m_intake.agitate(m_shooter));
+        // while right trigger and not right bumper (agitate cancels feed)
+        m_controller.rightTrigger().and(m_controller.rightBumper().negate())
+                .whileTrue(m_shooter.feed(m_intake));
+
+        m_controller.back().onTrue(m_drivetrain.resetIMU);
+        // m_controller.povRight().onTrue(m_intake.deploy);
+        // m_controller.povLeft().onTrue(m_intake.retract);
     }
 
     /**
      * I like to move it move it
      */
     private void drive() {
-        relocalize();
+        m_vision.getPoses().useOn(m_drivetrain);
 
         final var xSpeed = m_xspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftY(), 0.02))
                 * DriveConfig.maxSpeed;
@@ -116,13 +120,6 @@ public class RobotContainer {
         var targetAngle = Math.atan2(delta.getY(), delta.getX());
         var robotHeading = Math.toRadians(m_drivetrain.getHeadingDegrees());
         return MathUtil.angleModulus(targetAngle - robotHeading);
-    }
-
-    private void relocalize() {
-        Pose3d newPose = m_photon.getBotPose();
-        if (newPose == null)
-            return;
-        m_drivetrain.setPose(newPose.toPose2d());
     }
 
     public Command getAutonomousCommand() {

@@ -11,16 +11,17 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.configuration.RobotConfiguration;
@@ -53,7 +54,7 @@ public class Drivetrain extends SubsystemBase {
     private final Pigeon2 m_gyro = new Pigeon2(DriveConfig.pigeonCAN);
     private final StructPublisher<Pose2d> positionPublisher;
 
-    private final SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
+    private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
             DriveConfig.kinematics,
             getGyroYaw(),
             new SwerveModulePosition[] {
@@ -61,9 +62,11 @@ public class Drivetrain extends SubsystemBase {
                     m_frontRight.getPosition(),
                     m_backLeft.getPosition(),
                     m_backRight.getPosition()
-            });
+            }, new Pose2d());
 
     double[] m_gyroAccels = { 0, 0 };
+
+    private boolean hasLocalizedWithVision = false; // cancel odometry if we havent localized yet
 
     /** Let's roll. */
     public Drivetrain() {
@@ -103,6 +106,21 @@ public class Drivetrain extends SubsystemBase {
                 this);
     }
 
+    /**
+     * Tell me where I am.
+     */
+    public void usePoseEstimate(Pose2d pose) {
+        if (!hasLocalizedWithVision)
+            m_poseEstimator.resetPosition(getGyroYaw(), new SwerveModulePosition[] {
+                    m_frontLeft.getPosition(),
+                    m_frontRight.getPosition(),
+                    m_backLeft.getPosition(),
+                    m_backRight.getPosition()
+            }, pose);
+        hasLocalizedWithVision = true;
+        m_poseEstimator.addVisionMeasurement(pose, Timer.getFPGATimestamp());
+    }
+
     public ChassisSpeeds getChassisSpeeds() {
         return RobotConfiguration.DriveConfig.kinematics.toChassisSpeeds(getModuleStates());
     }
@@ -117,14 +135,15 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        m_odometry.update(
-                getGyroYaw(),
-                new SwerveModulePosition[] {
-                        m_frontLeft.getPosition(),
-                        m_frontRight.getPosition(),
-                        m_backLeft.getPosition(),
-                        m_backRight.getPosition()
-                });
+        if (hasLocalizedWithVision)
+            m_poseEstimator.update(
+                    getGyroYaw(),
+                    new SwerveModulePosition[] {
+                            m_frontLeft.getPosition(),
+                            m_frontRight.getPosition(),
+                            m_backLeft.getPosition(),
+                            m_backRight.getPosition()
+                    });
 
         m_gyroAccels[0] = m_gyro.getAccelerationX().getValueAsDouble();
         m_gyroAccels[1] = m_gyro.getAccelerationY().getValueAsDouble();
@@ -132,12 +151,13 @@ public class Drivetrain extends SubsystemBase {
         positionPublisher.set(getPose());
     }
 
-    public Command resetIMU() {
-        return runOnce(
-                () -> {
-                    m_gyro.reset();
-                });
-    }
+    /**
+     * I'm looking forward!
+     */
+    public Command resetIMU = runOnce(
+            () -> {
+                m_gyro.reset();
+            });
 
     /**
      * Where am I looking?
@@ -150,18 +170,14 @@ public class Drivetrain extends SubsystemBase {
      * Where am I?
      */
     public Pose2d getPose() {
-        return m_odometry.getPoseMeters();
-    }
-
-    public void setPose(Pose2d pose) {
-        m_odometry.resetPose(pose);
+        return m_poseEstimator.getEstimatedPosition();
     }
 
     /**
      * Tell me where I am.
      */
     public void resetOdometry(Pose2d pose) {
-        m_odometry.resetPosition(
+        m_poseEstimator.resetPosition(
                 getGyroYaw(),
                 new SwerveModulePosition[] {
                         m_frontLeft.getPosition(),

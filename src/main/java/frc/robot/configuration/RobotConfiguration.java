@@ -24,8 +24,8 @@ public class RobotConfiguration {
     }
 
     public static final class DriveConfig {
-        public static final double maxSpeed = 1;
-        public static final double maxAngularSpeed = Math.PI / 2;
+        public static final double maxSpeed = 1.5;
+        public static final double maxAngularSpeed = Math.PI / 1.67;
 
         private static final int drivingMotorPinionTeeth = 15;
         public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
@@ -65,7 +65,8 @@ public class RobotConfiguration {
         public static final class MAXSwerveModule {
             public static final SparkMaxConfig drivingConfig = new SparkMaxConfig();
             public static final SparkMaxConfig turningConfig = new SparkMaxConfig();
-            public static final SparkMaxConfig turningConfigFR = new SparkMaxConfig(); // front right motor is tight, use separate pid
+            public static final SparkMaxConfig turningConfigFR = new SparkMaxConfig(); // front right motor is tight,
+                                                                                       // use separate pid
 
             static {
                 // Use module constants to calculate conversion factors and feed forward gain.
@@ -110,7 +111,7 @@ public class RobotConfiguration {
                         // longer route.
                         .positionWrappingEnabled(true)
                         .positionWrappingInputRange(0, turningFactor);
-                        
+
                 turningConfigFR
                         .idleMode(IdleMode.kBrake)
                         .smartCurrentLimit(20);
@@ -148,6 +149,10 @@ public class RobotConfiguration {
         public static final int kickwheelCAN = 13;
         public static final int indexerCAN = 4;
 
+        public static final double INDEXER_RPM = 2500;
+        public static final double INDEXER_KICKOUT_RPM = -1000;
+        public static final double KICKWHEEL_RPM = 6000;
+
         public static final SparkMaxConfig flywheelConfig = new SparkMaxConfig();
         public static final SparkMaxConfig kickwheelConfig = new SparkMaxConfig();
         public static final SparkMaxConfig indexerConfig = new SparkMaxConfig();
@@ -155,18 +160,21 @@ public class RobotConfiguration {
         static {
             flywheelConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.00015, 0.0000002, 0)
-                    .outputRange(-1, 1)
-                    .iZone(200);
-            flywheelConfig.closedLoop.feedForward.kV(0.0023);
+                    .pid(0.00004, 0.0000001, 0)
+                    .iZone(50);
+            flywheelConfig.closedLoop.feedForward.kV(0.00215);
             flywheelConfig.smartCurrentLimit(60);
 
             kickwheelConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.05, 0, 0)
-                    .outputRange(-1, 1);
-            kickwheelConfig.smartCurrentLimit(10);
+                    .pid(0.00003, 0, 0);
+            kickwheelConfig.closedLoop.feedForward.kV(0.002);
+            kickwheelConfig.smartCurrentLimit(40);
 
+            indexerConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.00001, 0, 0);
+            indexerConfig.closedLoop.feedForward.kV(0.002);
             indexerConfig.smartCurrentLimit(40);
         }
     }
@@ -176,6 +184,10 @@ public class RobotConfiguration {
         public static final int pivotCAN = 16;
         public static final int conveyorCAN = 17;
 
+        public final static double INTAKER_SPEED = 6000;
+        public final static double CONVEYOR_SPEED_INTAKE = 1500;
+        public final static double CONVEYOR_SPEED_SHOOT = 4500;
+
         public static final SparkMaxConfig intakerConfig = new SparkMaxConfig();
         public static final SparkMaxConfig pivotConfig = new SparkMaxConfig();
         public static final SparkMaxConfig conveyorConfig = new SparkMaxConfig();
@@ -183,26 +195,32 @@ public class RobotConfiguration {
         static {
             intakerConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.05, 0, 0)
-                    .outputRange(-1, 1);
-            intakerConfig.smartCurrentLimit(10);
+                    .pid(0.000002, 0, 0);
+            intakerConfig.closedLoop.feedForward.kV(0.002);
+            intakerConfig.smartCurrentLimit(50);
 
             pivotConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.05, 0, 0)
-                    .outputRange(-1, 1);
-            pivotConfig.smartCurrentLimit(10);
+                    .pid(0.05, 0, 0);
+            pivotConfig.smartCurrentLimit(0);
 
             conveyorConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.05, 0, 0)
-                    .outputRange(-1, 1);
-            conveyorConfig.smartCurrentLimit(10);
+                    .pid(0.000005, 0, 0);
+            conveyorConfig.closedLoop.feedForward.kV(0.0011);
+            conveyorConfig.smartCurrentLimit(40);
         }
     }
 
     public static final class VisionConfig {
         public static final String cam1name = "right";
-        public static final Transform3d cam1offset = new Transform3d(0, 0, 0.4, new Rotation3d(0, 0, 0));
+        public static final Transform3d cam1offset = new Transform3d(-0.288, -0.288, 0.35, new Rotation3d(0, 15, 35));
+
+        public static final String cam2name = "left";
+        public static final Transform3d cam2offset = new Transform3d(0.288, -0.288, 0.35, new Rotation3d(0, 15, -35));
+    }
+
+    public static final class LightsConfig {
+        public static final int blinkinPort = 3;
     }
 }

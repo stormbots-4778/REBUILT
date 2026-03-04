@@ -11,75 +11,64 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.configuration.RobotConfiguration;
+import frc.robot.subsystems.shooting.Shooters;
 
 public class Intake extends SubsystemBase {
-    private final SparkMax intakerMotor;
-    private final SparkClosedLoopController intakerController;
-    private final static double INTAKER_SPEED = 600;
-
-    private final SparkMax pivotMotor;
-    private final SparkClosedLoopController pivotController;
-    private static final double DEPLOYED_POSITION = 1;
-    private static final double RETRACTED_POSITION = 0;
-
-    private final SparkMax conveyorMotor;
-    private final SparkClosedLoopController conveyorController;
-    private final static double CONVEYOR_SPEED = 600;
-
-    private SparkMax setupSpark(int can, SparkMaxConfig config) {
+    private static SparkMax setupSpark(int can, SparkMaxConfig config) {
         var m = new SparkMax(can, MotorType.kBrushless);
         m.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         return m;
     }
 
-    public Intake() {
-        intakerMotor = setupSpark(
-                RobotConfiguration.IntakeConfig.intakerCAN,
-                RobotConfiguration.IntakeConfig.intakerConfig);
-        intakerController = intakerMotor.getClosedLoopController();
+    private final SparkMax intakerMotor = setupSpark(
+            RobotConfiguration.IntakeConfig.intakerCAN,
+            RobotConfiguration.IntakeConfig.intakerConfig);
+    private final SparkClosedLoopController intakerController = intakerMotor.getClosedLoopController();
 
-        pivotMotor = setupSpark(
-                RobotConfiguration.IntakeConfig.pivotCAN,
-                RobotConfiguration.IntakeConfig.pivotConfig);
-        pivotController = pivotMotor.getClosedLoopController();
+    private final SparkMax pivotMotor = setupSpark(
+            RobotConfiguration.IntakeConfig.pivotCAN,
+            RobotConfiguration.IntakeConfig.pivotConfig);
+    private final SparkClosedLoopController pivotController = pivotMotor.getClosedLoopController();
+    private static final double DEPLOYED_POSITION = 1;
+    private static final double RETRACTED_POSITION = 0;
 
-        conveyorMotor = setupSpark(
-                RobotConfiguration.IntakeConfig.conveyorCAN,
-                RobotConfiguration.IntakeConfig.conveyorConfig);
-        conveyorController = conveyorMotor.getClosedLoopController();
+    private final SparkMax conveyorMotor = setupSpark(
+            RobotConfiguration.IntakeConfig.conveyorCAN,
+            RobotConfiguration.IntakeConfig.conveyorConfig);
+    private final SparkClosedLoopController conveyorController = conveyorMotor.getClosedLoopController();
+
+    public Command deploy = runOnce(() -> pivotController.setSetpoint(DEPLOYED_POSITION, ControlType.kPosition));
+    public Command retract = runOnce(() -> pivotController.setSetpoint(RETRACTED_POSITION, ControlType.kPosition));
+    public Command startIntaking = runOnce(this::start);
+    public Command stopIntaking = runOnce(this::stop);
+
+    public Command intake(Shooters shooters) {
+        return runEnd(this::start, this::stop).deadlineFor(shooters.outtakeIndexer());
     }
 
-    public Command deploy() {
-        return runOnce(() -> pivotController.setSetpoint(DEPLOYED_POSITION, ControlType.kPosition));
+    public Command agitate(Shooters shooters) {
+        return runEnd(() -> {
+            conveyorController.setSetpoint(RobotConfiguration.IntakeConfig.CONVEYOR_SPEED_INTAKE,
+                    ControlType.kVelocity);
+        }, this::stop).deadlineFor(shooters.outtakeIndexer());
     }
 
-    public Command retract() {
-        return runOnce(() -> pivotController.setSetpoint(RETRACTED_POSITION, ControlType.kPosition));
+    public Command runConveyorShoot = runEnd(
+            () -> conveyorController.setSetpoint(-RobotConfiguration.IntakeConfig.CONVEYOR_SPEED_SHOOT,
+                    ControlType.kVelocity),
+            this::stopConveyor);
+
+    private void start() {
+        intakerController.setSetpoint(-RobotConfiguration.IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
+        conveyorController.setSetpoint(-RobotConfiguration.IntakeConfig.CONVEYOR_SPEED_INTAKE, ControlType.kVelocity);
     }
 
-    private void start(boolean reversed) {
-        intakerController.setSetpoint(reversed ? -INTAKER_SPEED : INTAKER_SPEED, ControlType.kVelocity);
-        conveyorController.setSetpoint(reversed ? -CONVEYOR_SPEED : CONVEYOR_SPEED, ControlType.kVelocity);
+    public void stopConveyor() {
+        conveyorController.setSetpoint(0, ControlType.kVelocity);
     }
 
     private void stop() {
         intakerController.setSetpoint(0, ControlType.kVelocity);
-        conveyorController.setSetpoint(0, ControlType.kVelocity);
-    }
-
-    public Command startIntaking() {
-        return runOnce(() -> start(false));
-    }
-
-    public Command stopIntaking() {
-        return runOnce(() -> stop());
-    }
-
-    public Command intake() {
-        return runEnd(() -> start(false), () -> stop());
-    }
-
-    public Command outtake() {
-        return runEnd(() -> start(true), () -> stop());
+        stopConveyor();
     }
 }
