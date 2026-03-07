@@ -24,13 +24,15 @@ public class RobotConfiguration {
     }
 
     public static final class DriveConfig {
-        public static final double maxSpeed = 1.5;
-        public static final double maxAngularSpeed = Math.PI / 1.67;
+        public static final double maxSpeed = 5.5;
+        // public static final double maxSpeed = 3;
+        public static final double maxAngularSpeed = Math.PI * 1.25;
+        // public static final double maxAngularSpeed = Math.PI / 1.8;
 
         private static final int drivingMotorPinionTeeth = 15;
         public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
 
-        public static final double drivingMotorFreeSpeedRps = 6784 / 60; // neo motor is 5676
+        public static final double drivingMotorFreeSpeedRps = 6784 / 60;
         public static final double driveWheelFreeSpeedRps = (drivingMotorFreeSpeedRps
                 * ChassisConfig.wheelCircumferenceMeters)
                 / drivingMotorReduction;
@@ -76,7 +78,7 @@ public class RobotConfiguration {
 
                 drivingConfig
                         .idleMode(IdleMode.kBrake)
-                        .smartCurrentLimit(80);
+                        .smartCurrentLimit(50);
                 drivingConfig.encoder
                         .positionConversionFactor(drivingFactor) // meters
                         .velocityConversionFactor(drivingFactor / 60.0); // meters per second
@@ -164,6 +166,8 @@ public class RobotConfiguration {
                     .iZone(50);
             flywheelConfig.closedLoop.feedForward.kV(0.00215);
             flywheelConfig.smartCurrentLimit(60);
+            flywheelConfig.closedLoop.maxMotion.maxAcceleration(5000);
+            flywheelConfig.closedLoop.maxMotion.cruiseVelocity(4000);
 
             kickwheelConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -183,7 +187,6 @@ public class RobotConfiguration {
         public static final int intakerCAN = 15;
         public static final int pivotCAN = 16;
         public static final int conveyorCAN = 17;
-
         public final static double INTAKER_SPEED = 6000;
         public final static double CONVEYOR_SPEED_INTAKE = 1500;
         public final static double CONVEYOR_SPEED_SHOOT = 4500;
@@ -194,30 +197,29 @@ public class RobotConfiguration {
 
         static {
             intakerConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.000002, 0, 0);
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+            .pid(0.000002, 0, 0);
             intakerConfig.closedLoop.feedForward.kV(0.002);
             intakerConfig.smartCurrentLimit(50);
 
-            pivotConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.05, 0, 0);
-            pivotConfig.smartCurrentLimit(0);
+            pivotConfig.smartCurrentLimit(10);
 
             conveyorConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.000005, 0, 0);
-            conveyorConfig.closedLoop.feedForward.kV(0.0011);
-            conveyorConfig.smartCurrentLimit(40);
+                    .pid(0.000005, 0.0000001, 0);
+            conveyorConfig.closedLoop.feedForward.kV(0.0021);
+            conveyorConfig.smartCurrentLimit(60);
+            conveyorConfig.closedLoop.maxMotion.maxAcceleration(7500);
+            conveyorConfig.closedLoop.maxMotion.cruiseVelocity(5000);
         }
     }
 
     public static final class VisionConfig {
         public static final String cam1name = "right";
-        public static final Transform3d cam1offset = new Transform3d(-0.288, -0.288, 0.35, new Rotation3d(0, 15, 35));
+        public static final Transform3d cam1offset = new Transform3d(-0.288, -0.288, 0.35, new Rotation3d(0, 15, 25));
 
         public static final String cam2name = "left";
-        public static final Transform3d cam2offset = new Transform3d(0.288, -0.288, 0.35, new Rotation3d(0, 15, -35));
+        public static final Transform3d cam2offset = new Transform3d(0.288, -0.288, 0.35, new Rotation3d(0, 15, -25));
     }
 
     public static final class LightsConfig {

@@ -1,12 +1,19 @@
 ========= controls ===========
  button =========== command
 
-pov right ......... deploy intaker
-pov left .......... retract intaker
 right trigger ..... feed shooter (right bumper CANCELS)
 right bumper ...... agitate
-left trigger ....... intake
+left trigger ...... intake
 X ................. autotarget
+A ................. shoot distance override (set distance to low)
 options ........... reset imu
+B ................. deploy intake
+Y ................. retract intake (not implemented)
+
+pov right ......... autoaim offset angle +
+pov left .......... autoaim offset angle -
+pov up  ........... autoaim offset distance +
+pov down .......... autoaim offset distance -
+left bumper ....... autoaim offset reset
 
 hood will be down UNLESS feeding or autotargeting (X or right trigger)

@@ -5,9 +5,33 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Deploy Intaker"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Activate Hood"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Center Start to Bottom Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Agitate"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Feed Shooter"
           }
         },
         {
@@ -17,9 +41,33 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 5.0
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Human Player to Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Agitate"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Feed Shooter"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start Intaking"
           }
         },
         {
@@ -29,9 +77,33 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Stop Intaking"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Depot Edge to Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Agitate"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Feed Shooter"
           }
         }
       ]

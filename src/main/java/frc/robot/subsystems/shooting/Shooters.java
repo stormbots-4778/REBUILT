@@ -7,6 +7,7 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -30,19 +31,17 @@ public class Shooters extends SubsystemBase {
         public final SparkClosedLoopController motor1Controller;
         private final SparkMax motor2;
         public final SparkClosedLoopController motor2Controller;
-        private final ControlType controlType;
 
-        public DoubleShooterSparks(int can1, int can2, SparkMaxConfig config, ControlType controlType) {
+        public DoubleShooterSparks(int can1, int can2, SparkMaxConfig config) {
             motor1 = setupSpark(can1, config);
             motor1Controller = motor1.getClosedLoopController();
             motor2 = setupSpark(can2, config);
             motor2Controller = motor2.getClosedLoopController();
-            this.controlType = controlType;
         }
 
         public void set(double value) {
-            motor1Controller.setSetpoint(-value, controlType);
-            motor2Controller.setSetpoint(value, controlType);
+            motor1Controller.setSetpoint(-value, ControlType.kMAXMotionVelocityControl);
+            motor2Controller.setSetpoint(value, ControlType.kMAXMotionVelocityControl);
         }
     }
 
@@ -66,15 +65,14 @@ public class Shooters extends SubsystemBase {
 
     private final SparkMax kickwheelMotor;
     private final SparkClosedLoopController kickwheelController;
-    private final SparkMax indexerMotor;
+    private final SparkFlex indexerMotor;
     private final SparkClosedLoopController indexerController;
 
     public Shooters() {
         flywheels = new DoubleShooterSparks(
                 RobotConfiguration.ShooterConfig.flywheel1CAN,
                 RobotConfiguration.ShooterConfig.flywheel2CAN,
-                RobotConfiguration.ShooterConfig.flywheelConfig,
-                ControlType.kVelocity);
+                RobotConfiguration.ShooterConfig.flywheelConfig);
         flywheels.set(500);
 
         hoods = new DoubleServo(
@@ -85,8 +83,9 @@ public class Shooters extends SubsystemBase {
                 RobotConfiguration.ShooterConfig.kickwheelConfig);
         kickwheelController = kickwheelMotor.getClosedLoopController();
 
-        indexerMotor = setupSpark(RobotConfiguration.ShooterConfig.indexerCAN,
-                RobotConfiguration.ShooterConfig.indexerConfig);
+        indexerMotor = new SparkFlex(RobotConfiguration.ShooterConfig.indexerCAN, MotorType.kBrushless);
+        indexerMotor.configure(RobotConfiguration.ShooterConfig.indexerConfig, ResetMode.kResetSafeParameters,
+                PersistMode.kNoPersistParameters);
         indexerController = indexerMotor.getClosedLoopController();
     }
 
@@ -102,7 +101,9 @@ public class Shooters extends SubsystemBase {
     }
 
     public Command outtakeIndexer() {
-        return run(() -> setVelocity(indexerController, -RobotConfiguration.ShooterConfig.INDEXER_KICKOUT_RPM));
+        // return run(() -> setVelocity(indexerController,
+        // -RobotConfiguration.ShooterConfig.INDEXER_KICKOUT_RPM));
+        return run(() -> indexerMotor.setVoltage(6));
     }
 
     public Command feed(Intake intake) {
@@ -110,12 +111,14 @@ public class Shooters extends SubsystemBase {
                 .alongWith(
                         new WaitUntilCommand(this::kickwheelAtSpeed).andThen(
                                 () -> {
-                                    setVelocity(indexerController,
-                                            -RobotConfiguration.ShooterConfig.INDEXER_RPM);
+                                    // setVelocity(indexerController,
+                                    // -RobotConfiguration.ShooterConfig.INDEXER_RPM);
+                                    indexerMotor.setVoltage(-6);
                                 }))
-                .alongWith(intake.runConveyorShoot)
+                .alongWith(intake.runConveyorShoot())
                 .finallyDo(() -> {
-                    setVelocity(indexerController, 0);
+                    // setVelocity(indexerController, 0);
+                    indexerMotor.setVoltage(0);
                     setVelocity(kickwheelController, 0);
                 });
     }
@@ -129,19 +132,19 @@ public class Shooters extends SubsystemBase {
         return run(() -> hoods.setAngle(angle));
     }
 
-    // for teleop
     public Command shootWithDistance(DoubleSupplier distanceSupplier, BooleanSupplier enableHood) {
         return run(() -> {
             double distance = distanceSupplier.getAsDouble();
             Double shootval = ShootingDistanceTables.shooter.get(distance);
             flywheels.set(shootval);
+            hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) : 0);
+        });
+    }
 
-            if (enableHood.getAsBoolean()) {
-                Double hoodval = ShootingDistanceTables.hood.get(distance);
-                hoods.setAngle(hoodval);
-            } else {
-                hoods.setAngle(0);
-            }
+    public Command shootWithCustom(double shooterSpeed, double hoodAngle) {
+        return run(() -> {
+            flywheels.set(shooterSpeed);
+            hoods.setAngle(hoodAngle);
         });
     }
 }

@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 3.25,
-        "y": 2.5
+        "x": 1.7148636363636363,
+        "y": 4.0
       },
       "prevControl": {
-        "x": 3.25,
-        "y": 3.5
+        "x": 2.848613636363636,
+        "y": 3.9937727272727273
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Shoot Point Bottom"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 50.0
+    "rotation": 0.41232494258908053
   },
   "reversed": false,
   "folder": null,

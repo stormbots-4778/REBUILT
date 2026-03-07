@@ -10,7 +10,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.configuration.RobotConfiguration;
+import frc.robot.configuration.RobotConfiguration.IntakeConfig;
 import frc.robot.subsystems.shooting.Shooters;
 
 public class Intake extends SubsystemBase {
@@ -21,50 +21,70 @@ public class Intake extends SubsystemBase {
     }
 
     private final SparkMax intakerMotor = setupSpark(
-            RobotConfiguration.IntakeConfig.intakerCAN,
-            RobotConfiguration.IntakeConfig.intakerConfig);
+            IntakeConfig.intakerCAN,
+            IntakeConfig.intakerConfig);
     private final SparkClosedLoopController intakerController = intakerMotor.getClosedLoopController();
 
     private final SparkMax pivotMotor = setupSpark(
-            RobotConfiguration.IntakeConfig.pivotCAN,
-            RobotConfiguration.IntakeConfig.pivotConfig);
-    private final SparkClosedLoopController pivotController = pivotMotor.getClosedLoopController();
-    private static final double DEPLOYED_POSITION = 1;
-    private static final double RETRACTED_POSITION = 0;
+            IntakeConfig.pivotCAN,
+            IntakeConfig.pivotConfig);
 
     private final SparkMax conveyorMotor = setupSpark(
-            RobotConfiguration.IntakeConfig.conveyorCAN,
-            RobotConfiguration.IntakeConfig.conveyorConfig);
+            IntakeConfig.conveyorCAN,
+            IntakeConfig.conveyorConfig);
     private final SparkClosedLoopController conveyorController = conveyorMotor.getClosedLoopController();
 
-    public Command deploy = runOnce(() -> pivotController.setSetpoint(DEPLOYED_POSITION, ControlType.kPosition));
-    public Command retract = runOnce(() -> pivotController.setSetpoint(RETRACTED_POSITION, ControlType.kPosition));
-    public Command startIntaking = runOnce(this::start);
-    public Command stopIntaking = runOnce(this::stop);
+    public Command deploy() {
+        return run(() -> pivotMotor.setVoltage(-1)).withTimeout(2)
+                .andThen(() -> pivotMotor.setVoltage(0));
+    }
+
+    public Command startIntaking() {
+        return runOnce(this::start);
+    }
+
+    public Command stopIntaking() {
+        return runOnce(this::stop);
+    }
 
     public Command intake(Shooters shooters) {
         return runEnd(this::start, this::stop).deadlineFor(shooters.outtakeIndexer());
     }
 
+    public Command outtake(Shooters shooters) {
+        return runEnd(this::reverse, this::stop).deadlineFor(shooters.outtakeIndexer());
+    }
+
+    private void setConveyor(double speed) {
+        conveyorController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl);
+    }
+
     public Command agitate(Shooters shooters) {
         return runEnd(() -> {
-            conveyorController.setSetpoint(RobotConfiguration.IntakeConfig.CONVEYOR_SPEED_INTAKE,
-                    ControlType.kVelocity);
+            setConveyor(IntakeConfig.CONVEYOR_SPEED_INTAKE);
         }, this::stop).deadlineFor(shooters.outtakeIndexer());
     }
 
-    public Command runConveyorShoot = runEnd(
-            () -> conveyorController.setSetpoint(-RobotConfiguration.IntakeConfig.CONVEYOR_SPEED_SHOOT,
-                    ControlType.kVelocity),
-            this::stopConveyor);
+    public Command runConveyorShoot() {
+        return runEnd(
+                () -> {
+                    setConveyor(-IntakeConfig.CONVEYOR_SPEED_SHOOT);
+                },
+                this::stopConveyor);
+    }
 
     private void start() {
-        intakerController.setSetpoint(-RobotConfiguration.IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
-        conveyorController.setSetpoint(-RobotConfiguration.IntakeConfig.CONVEYOR_SPEED_INTAKE, ControlType.kVelocity);
+        intakerController.setSetpoint(-IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
+        setConveyor(-IntakeConfig.CONVEYOR_SPEED_INTAKE);
+    }
+
+    private void reverse() {
+        intakerController.setSetpoint(IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
+        setConveyor(IntakeConfig.CONVEYOR_SPEED_INTAKE);
     }
 
     public void stopConveyor() {
-        conveyorController.setSetpoint(0, ControlType.kVelocity);
+        setConveyor(0);
     }
 
     private void stop() {
