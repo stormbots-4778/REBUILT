@@ -151,9 +151,9 @@ public class RobotConfiguration {
         public static final int kickwheelCAN = 13;
         public static final int indexerCAN = 4;
 
-        public static final double INDEXER_RPM = 2500;
-        public static final double INDEXER_KICKOUT_RPM = -1000;
-        public static final double KICKWHEEL_RPM = 6000;
+        public static final double INDEXER_SPEED = 2500;
+        public static final double INDEXER_KICKOUT_SPEED = -1000;
+        public static final double KICKWHEEL_SPEED = 6000;
 
         public static final SparkMaxConfig flywheelConfig = new SparkMaxConfig();
         public static final SparkMaxConfig kickwheelConfig = new SparkMaxConfig();
@@ -174,6 +174,7 @@ public class RobotConfiguration {
                     .pid(0.00003, 0, 0);
             kickwheelConfig.closedLoop.feedForward.kV(0.002);
             kickwheelConfig.smartCurrentLimit(40);
+            kickwheelConfig.inverted(true);
 
             indexerConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -200,8 +201,8 @@ public class RobotConfiguration {
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
             .pid(0.000002, 0, 0);
             intakerConfig.closedLoop.feedForward.kV(0.002);
+            intakerConfig.inverted(true);
             intakerConfig.smartCurrentLimit(50);
-
             pivotConfig.smartCurrentLimit(10);
 
             conveyorConfig.closedLoop
@@ -211,6 +212,7 @@ public class RobotConfiguration {
             conveyorConfig.smartCurrentLimit(60);
             conveyorConfig.closedLoop.maxMotion.maxAcceleration(7500);
             conveyorConfig.closedLoop.maxMotion.cruiseVelocity(5000);
+            conveyorConfig.inverted(true);
         }
     }
 

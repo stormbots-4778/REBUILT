@@ -97,7 +97,7 @@ public class Shooters extends SubsystemBase {
 
     private boolean kickwheelAtSpeed() {
         return Math.abs(kickwheelMotor.getEncoder().getVelocity())
-                + KICKWHEEL_AT_SPEED_THRESHOLD > RobotConfiguration.ShooterConfig.KICKWHEEL_RPM;
+                + KICKWHEEL_AT_SPEED_THRESHOLD > RobotConfiguration.ShooterConfig.KICKWHEEL_SPEED;
     }
 
     public Command outtakeIndexer() {
@@ -107,7 +107,7 @@ public class Shooters extends SubsystemBase {
     }
 
     public Command feed(Intake intake) {
-        return run(() -> setVelocity(kickwheelController, -RobotConfiguration.ShooterConfig.KICKWHEEL_RPM))
+        return run(() -> setVelocity(kickwheelController, RobotConfiguration.ShooterConfig.KICKWHEEL_SPEED))
                 .alongWith(
                         new WaitUntilCommand(this::kickwheelAtSpeed).andThen(
                                 () -> {

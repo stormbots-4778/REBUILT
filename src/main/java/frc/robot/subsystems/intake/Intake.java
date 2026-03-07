@@ -61,26 +61,26 @@ public class Intake extends SubsystemBase {
 
     public Command agitate(Shooters shooters) {
         return runEnd(() -> {
-            setConveyor(IntakeConfig.CONVEYOR_SPEED_INTAKE);
+            setConveyor(-IntakeConfig.CONVEYOR_SPEED_INTAKE);
         }, this::stop).deadlineFor(shooters.outtakeIndexer());
     }
 
     public Command runConveyorShoot() {
         return runEnd(
                 () -> {
-                    setConveyor(-IntakeConfig.CONVEYOR_SPEED_SHOOT);
+                    setConveyor(IntakeConfig.CONVEYOR_SPEED_SHOOT);
                 },
                 this::stopConveyor);
     }
 
     private void start() {
-        intakerController.setSetpoint(-IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
-        setConveyor(-IntakeConfig.CONVEYOR_SPEED_INTAKE);
+        intakerController.setSetpoint(IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
+        setConveyor(IntakeConfig.CONVEYOR_SPEED_INTAKE);
     }
 
     private void reverse() {
-        intakerController.setSetpoint(IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
-        setConveyor(IntakeConfig.CONVEYOR_SPEED_INTAKE);
+        intakerController.setSetpoint(-IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
+        setConveyor(-IntakeConfig.CONVEYOR_SPEED_INTAKE);
     }
 
     public void stopConveyor() {
