@@ -6,7 +6,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -48,9 +47,11 @@ public class RobotContainer {
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
         m_vision.setDefaultCommand(new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain), m_vision));
         m_shooter.setDefaultCommand(
-                m_shooter.shootWithDistance(
+                m_shooter.useDistance(
                         this::shooterShootDistance,
-                        this::shouldEnableHood));
+                        m_controller.x()
+                                .or(m_controller.rightTrigger(0.2))
+                                .or(m_controller.a())));
 
         configureButtonBindings();
         autoChooser = AutoBuilder.buildAutoChooser();
@@ -61,20 +62,6 @@ public class RobotContainer {
         m_alliance = alliance;
         m_goalPosition = FieldConfiguration.getGoalPosition(alliance);
         System.out.println("Set alliance: " + m_alliance + ". Goal position = " + m_goalPosition);
-    }
-
-    /**
-     * Can I put my hood up?
-     */
-    private boolean shouldEnableHood() {
-        if (m_controller.x()
-                .or(m_controller.rightTrigger())
-                .or(m_controller.a()).getAsBoolean())
-            return true;
-        if (RobotState.isAutonomous())
-            return true;
-
-        return false;
     }
 
     /**
@@ -169,9 +156,10 @@ public class RobotContainer {
     }
 
     private Command basicShootAuto = Commands.sequence(
-            m_intake.deploy(),
-            new RepeatCommand(Commands.sequence(
-                    m_shooter.feed(m_intake).withTimeout(3),
+            // m_shooter.useDistance(this::shooterShootDistance, () -> true)
+            // .withDeadline(m_intake.deploy()),
+            m_shooter.setPower(3150, 15).withDeadline(m_intake.deploy()),
+            new RepeatCommand(Commands.sequence(m_shooter.feed(m_intake).withTimeout(3),
                     m_intake.agitate(m_shooter).withTimeout(1))));
 
     public Command getAutonomousCommand() {

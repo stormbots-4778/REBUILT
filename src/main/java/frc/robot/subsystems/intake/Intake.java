@@ -35,7 +35,7 @@ public class Intake extends SubsystemBase {
     private final SparkClosedLoopController conveyorController = conveyorMotor.getClosedLoopController();
 
     public Command deploy() {
-        return run(() -> pivotMotor.setVoltage(-1)).withTimeout(2)
+        return run(() -> pivotMotor.setVoltage(-3)).withTimeout(2)
                 .andThen(() -> pivotMotor.setVoltage(0));
     }
 

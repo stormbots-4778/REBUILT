@@ -25,9 +25,7 @@ public class RobotConfiguration {
 
     public static final class DriveConfig {
         public static final double maxSpeed = 5.5;
-        // public static final double maxSpeed = 3;
-        public static final double maxAngularSpeed = Math.PI * 1.25;
-        // public static final double maxAngularSpeed = Math.PI / 1.8;
+        public static final double maxAngularSpeed = Math.PI * 1.2;
 
         private static final int drivingMotorPinionTeeth = 15;
         public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
@@ -210,7 +208,7 @@ public class RobotConfiguration {
                     .pid(0.000005, 0.0000001, 0);
             conveyorConfig.closedLoop.feedForward.kV(0.0021);
             conveyorConfig.smartCurrentLimit(60);
-            conveyorConfig.closedLoop.maxMotion.maxAcceleration(7500);
+            conveyorConfig.closedLoop.maxMotion.maxAcceleration(15000);
             conveyorConfig.closedLoop.maxMotion.cruiseVelocity(5000);
             conveyorConfig.inverted(true);
         }

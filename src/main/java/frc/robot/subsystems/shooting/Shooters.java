@@ -14,6 +14,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.configuration.RobotConfiguration;
@@ -102,20 +103,19 @@ public class Shooters extends SubsystemBase {
 
     public Command outtakeIndexer() {
         // return run(() -> setVelocity(indexerController,
-        // -RobotConfiguration.ShooterConfig.INDEXER_KICKOUT_RPM));
-        return run(() -> indexerMotor.setVoltage(6));
+        // -RobotConfiguration.ShooterConfig.INDEXER_KICKOUT_SPEED));
+        return runEnd(() -> indexerMotor.setVoltage(6), () -> indexerMotor.setVoltage(0));
     }
 
     public Command feed(Intake intake) {
         return run(() -> setVelocity(kickwheelController, RobotConfiguration.ShooterConfig.KICKWHEEL_SPEED))
                 .alongWith(
                         new WaitUntilCommand(this::kickwheelAtSpeed).andThen(
-                                () -> {
+                                new RunCommand(() -> {
                                     // setVelocity(indexerController,
-                                    // -RobotConfiguration.ShooterConfig.INDEXER_RPM);
+                                    // -RobotConfiguration.ShooterConfig.INDEXER_SPEED);
                                     indexerMotor.setVoltage(-6);
-                                }))
-                .alongWith(intake.runConveyorShoot())
+                                }).alongWith(intake.runConveyorShoot())))
                 .finallyDo(() -> {
                     // setVelocity(indexerController, 0);
                     indexerMotor.setVoltage(0);
@@ -132,16 +132,17 @@ public class Shooters extends SubsystemBase {
         return run(() -> hoods.setAngle(angle));
     }
 
-    public Command shootWithDistance(DoubleSupplier distanceSupplier, BooleanSupplier enableHood) {
+    public Command useDistance(DoubleSupplier distanceSupplier, BooleanSupplier enableHood) {
         return run(() -> {
             double distance = distanceSupplier.getAsDouble();
+            System.out.println("Shooter: Distance = " + distance);
             Double shootval = ShootingDistanceTables.shooter.get(distance);
             flywheels.set(shootval);
             hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) : 0);
         });
     }
 
-    public Command shootWithCustom(double shooterSpeed, double hoodAngle) {
+    public Command setPower(double shooterSpeed, double hoodAngle) {
         return run(() -> {
             flywheels.set(shooterSpeed);
             hoods.setAngle(hoodAngle);
