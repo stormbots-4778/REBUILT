@@ -5,6 +5,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -39,6 +40,7 @@ public class RobotContainer {
 
     private Alliance m_alliance;
     private Translation2d m_goalPosition;
+    private Translation2d m_aimAtGoalPosition; // for autoalign
 
     public RobotContainer() {
         configureNamedCommands();
@@ -61,6 +63,7 @@ public class RobotContainer {
     private void setAlliance(Alliance alliance) {
         m_alliance = alliance;
         m_goalPosition = FieldConfiguration.getGoalPosition(alliance);
+        m_aimAtGoalPosition = m_goalPosition;
         System.out.println("Set alliance: " + m_alliance + ". Goal position = " + m_goalPosition);
     }
 
@@ -71,7 +74,7 @@ public class RobotContainer {
         if (m_controller.a().getAsBoolean()) {
             return DISTANCE_OVERRIDE;
         }
-        return distanceFromCoordinate(m_goalPosition);
+        return distanceFromCoordinate(m_aimAtGoalPosition);
     }
 
     private void configureNamedCommands() {
@@ -111,6 +114,8 @@ public class RobotContainer {
      * I like to move it move it
      */
     private void drive() {
+        m_aimAtGoalPosition = autoaimTarget();
+
         final var xSpeed = MathUtil.applyDeadband(m_controller.getLeftY(), 0.02)
                 * DriveConfig.maxSpeed;
         final var ySpeed = MathUtil.applyDeadband(m_controller.getLeftX(), 0.02)
@@ -132,8 +137,20 @@ public class RobotContainer {
      * How much does autotargeting want me to turn by?
      */
     private double autotargetRotation() {
-        return (rotationToCoordinate(m_goalPosition))
+        return (rotationToCoordinate(m_aimAtGoalPosition))
                 * AUTOTARGET_CORRECTION_FACTOR;
+    }
+
+    /**
+     * Where should I look to autoaim well?
+     */
+    private Translation2d autoaimTarget() {
+        ChassisSpeeds botVelocityField = ChassisSpeeds.fromRobotRelativeSpeeds(m_drivetrain.getChassisSpeeds(),
+                m_drivetrain.getGyroYaw());
+        Translation2d botVelocity = new Translation2d(
+                botVelocityField.vxMetersPerSecond,
+                botVelocityField.vyMetersPerSecond);
+        return m_goalPosition.minus(botVelocity);
     }
 
     /**
