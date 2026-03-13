@@ -47,7 +47,7 @@ public class RobotContainer {
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
         m_vision.setDefaultCommand(
                 Commands.parallel(
-                        new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain, m_alliance)),
+                        new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain)),
                         m_vision.setThrottling(DriverStation::isDisabled)));
         m_shooter.setDefaultCommand(
                 m_shooter.useDistance(

@@ -214,7 +214,8 @@ public class RobotConfiguration {
     }
 
     public static final class VisionConfig {
-        public static final String llname = "limelight-sigma";
+        public static final String ll4Name = "limelight-sigma";
+        public static final String ll2pName = "limelight-silly";
     }
 
     public static final class LightsConfig {
