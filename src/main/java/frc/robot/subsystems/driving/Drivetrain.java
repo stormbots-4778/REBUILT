@@ -21,7 +21,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.configuration.RobotConfiguration;
@@ -109,7 +108,8 @@ public class Drivetrain extends SubsystemBase {
     /**
      * Tell me where I am.
      */
-    public void usePoseEstimate(Pose2d pose) {
+    public void usePoseEstimate(Pose2d pose, double timestamp) {
+        System.out.println("Using pose estimate: " + pose.getTranslation());
         if (!hasLocalizedWithVision)
             m_poseEstimator.resetPosition(getGyroYaw(), new SwerveModulePosition[] {
                     m_frontLeft.getPosition(),
@@ -118,7 +118,7 @@ public class Drivetrain extends SubsystemBase {
                     m_backRight.getPosition()
             }, pose);
         hasLocalizedWithVision = true;
-        m_poseEstimator.addVisionMeasurement(pose, Timer.getFPGATimestamp());
+        m_poseEstimator.addVisionMeasurement(pose, timestamp);
     }
 
     public ChassisSpeeds getChassisSpeeds() {

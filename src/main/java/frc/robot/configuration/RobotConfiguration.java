@@ -5,8 +5,6 @@ import com.revrobotics.spark.config.AbsoluteEncoderConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
@@ -24,8 +22,9 @@ public class RobotConfiguration {
     }
 
     public static final class DriveConfig {
-        public static final double maxSpeed = 5.5;
-        public static final double maxAngularSpeed = Math.PI * 1.2;
+        public static final double maxSpeed = 1;
+        // public static final double maxAngularSpeed = Math.PI / 2;
+        public static final double maxAngularSpeed = Math.PI;
 
         private static final int drivingMotorPinionTeeth = 15;
         public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
@@ -196,8 +195,8 @@ public class RobotConfiguration {
 
         static {
             intakerConfig.closedLoop
-            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(0.000002, 0, 0);
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.000002, 0, 0);
             intakerConfig.closedLoop.feedForward.kV(0.002);
             intakerConfig.inverted(true);
             intakerConfig.smartCurrentLimit(50);
@@ -215,11 +214,7 @@ public class RobotConfiguration {
     }
 
     public static final class VisionConfig {
-        public static final String cam1name = "right";
-        public static final Transform3d cam1offset = new Transform3d(-0.288, -0.288, 0.35, new Rotation3d(0, 15, 25));
-
-        public static final String cam2name = "left";
-        public static final Transform3d cam2offset = new Transform3d(0.288, -0.288, 0.35, new Rotation3d(0, 15, -25));
+        public static final String llname = "limelight-sigma";
     }
 
     public static final class LightsConfig {

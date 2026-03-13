@@ -35,8 +35,6 @@ public class RobotContainer {
     private static final boolean USE_FIELD_RELATIVE = true;
     // shoot distance override
     private static final double DISTANCE_OVERRIDE = 1.5;
-    // The drivetrain rotation tapers off as it approaches the target angle.
-    private static final double AUTOTARGET_CORRECTION_FACTOR = 2;
 
     private Alliance m_alliance;
     private Translation2d m_goalPosition;
@@ -47,7 +45,8 @@ public class RobotContainer {
         setAlliance(DriverStation.getAlliance().orElse(Alliance.Red));
 
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
-        m_vision.setDefaultCommand(new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain), m_vision));
+        m_vision.setDefaultCommand(
+                new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain, m_alliance), m_vision));
         m_shooter.setDefaultCommand(
                 m_shooter.useDistance(
                         this::shooterShootDistance,
@@ -89,6 +88,9 @@ public class RobotContainer {
     }
 
     private void configureButtonBindings() {
+        System.out.println("Shooting while moving: aiming at " + m_aimAtGoalPosition + " (difference of "
+                + m_goalPosition.minus(m_aimAtGoalPosition) + ")");
+
         m_controller.leftTrigger().and(m_controller.rightBumper().negate())
                 .whileTrue(new RepeatCommand(m_intake.intake(m_shooter)));
 
@@ -101,7 +103,7 @@ public class RobotContainer {
         m_controller.leftTrigger().and(m_controller.rightBumper())
                 .whileTrue(new RepeatCommand(m_intake.outtake(m_shooter)));
 
-        m_controller.back().onTrue(m_drivetrain.resetIMU);
+        m_controller.back().onTrue(Commands.parallel(m_drivetrain.resetIMU, m_vision.zeroLimelightIMU));
         m_controller.b().onTrue(m_intake.deploy());
 
         m_controller.leftStick().onTrue(new InstantCommand(
@@ -137,8 +139,7 @@ public class RobotContainer {
      * How much does autotargeting want me to turn by?
      */
     private double autotargetRotation() {
-        return (rotationToCoordinate(m_aimAtGoalPosition))
-                * AUTOTARGET_CORRECTION_FACTOR;
+        return rotationToCoordinate(m_aimAtGoalPosition);
     }
 
     /**
@@ -150,7 +151,8 @@ public class RobotContainer {
         Translation2d botVelocity = new Translation2d(
                 botVelocityField.vxMetersPerSecond,
                 botVelocityField.vyMetersPerSecond);
-        return m_goalPosition.minus(botVelocity);
+        Translation2d difference = botVelocity.times(distanceFromCoordinate(m_goalPosition));
+        return m_goalPosition.minus(difference);
     }
 
     /**
@@ -180,7 +182,7 @@ public class RobotContainer {
                     m_intake.agitate(m_shooter).withTimeout(1))));
 
     public Command getAutonomousCommand() {
-        // return autoChooser.getSelected();
-        return basicShootAuto;
+        return autoChooser.getSelected();
+        // return basicShootAuto;
     }
 }
