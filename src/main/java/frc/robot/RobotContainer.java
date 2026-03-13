@@ -46,7 +46,9 @@ public class RobotContainer {
 
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
         m_vision.setDefaultCommand(
-                new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain, m_alliance), m_vision));
+                Commands.parallel(
+                        new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain, m_alliance)),
+                        m_vision.setThrottling(DriverStation::isDisabled)));
         m_shooter.setDefaultCommand(
                 m_shooter.useDistance(
                         this::shooterShootDistance,
@@ -148,10 +150,9 @@ public class RobotContainer {
     private Translation2d autoaimTarget() {
         ChassisSpeeds botVelocityField = ChassisSpeeds.fromRobotRelativeSpeeds(m_drivetrain.getChassisSpeeds(),
                 m_drivetrain.getGyroYaw());
-        Translation2d botVelocity = new Translation2d(
+        Translation2d difference = new Translation2d(
                 botVelocityField.vxMetersPerSecond,
                 botVelocityField.vyMetersPerSecond);
-        Translation2d difference = botVelocity.times(distanceFromCoordinate(m_goalPosition));
         return m_goalPosition.minus(difference);
     }
 
