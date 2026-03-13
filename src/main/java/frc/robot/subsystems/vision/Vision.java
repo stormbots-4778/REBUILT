@@ -1,7 +1,5 @@
 package frc.robot.subsystems.vision;
 
-import java.util.function.BooleanSupplier;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -27,15 +25,5 @@ public class Vision extends SubsystemBase {
     public void passIntoDrivetrain(Drivetrain drive) {
         useLL(VisionConfig.ll4Name, drive, false);
         useLL(VisionConfig.ll2pName, drive, true);
-    }
-
-    public Command setThrottling(BooleanSupplier throttle) {
-        return run(() -> {
-            if (throttle.getAsBoolean()) {
-                LimelightHelpers.SetThrottle(VisionConfig.ll4Name, 200);
-            } else {
-                LimelightHelpers.SetThrottle(VisionConfig.ll4Name, 0);
-            }
-        });
     }
 }
