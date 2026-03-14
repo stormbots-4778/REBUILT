@@ -6,6 +6,8 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -40,12 +42,20 @@ public class RobotContainer {
     private Translation2d m_goalPosition;
     private Translation2d m_aimAtGoalPosition; // for autoalign
 
+    private StructPublisher<Translation2d> m_goalPositionPublisher;
+    private StructPublisher<Translation2d> m_aimAtGoalPositionPublisher;
+
     public RobotContainer() {
+        m_goalPositionPublisher = NetworkTableInstance.getDefault()
+                .getStructTopic("4778GoalPosition", Translation2d.struct).publish();
+        m_aimAtGoalPositionPublisher = NetworkTableInstance.getDefault()
+                .getStructTopic("4778AimAtGoalPosition", Translation2d.struct).publish();
+
         configureNamedCommands();
         setAlliance(DriverStation.getAlliance().orElse(Alliance.Red));
 
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
-        m_vision.setDefaultCommand(new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain)));
+        m_vision.setDefaultCommand(new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain), m_vision));
         m_shooter.setDefaultCommand(
                 m_shooter.useDistance(
                         this::shooterShootDistance,
@@ -62,7 +72,8 @@ public class RobotContainer {
         m_alliance = alliance;
         m_goalPosition = FieldConfiguration.getGoalPosition(alliance);
         m_aimAtGoalPosition = m_goalPosition;
-        System.out.println("Set alliance: " + m_alliance + ". Goal position = " + m_goalPosition);
+
+        m_goalPositionPublisher.set(m_goalPosition);
     }
 
     /**
@@ -116,6 +127,7 @@ public class RobotContainer {
      */
     private void drive() {
         m_aimAtGoalPosition = autoaimTarget();
+        m_aimAtGoalPositionPublisher.set(m_aimAtGoalPosition);
 
         final var xSpeed = MathUtil.applyDeadband(m_controller.getLeftY(), 0.02)
                 * DriveConfig.maxSpeed;
