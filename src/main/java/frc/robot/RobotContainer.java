@@ -150,7 +150,7 @@ public class RobotContainer {
      * How much does autotargeting want me to turn by?
      */
     private double autotargetRotation() {
-        return rotationToCoordinate(m_aimAtGoalPosition);
+        return rotationToCoordinate(m_aimAtGoalPosition) * 2;
     }
 
     /**

@@ -5,19 +5,82 @@
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "twerk1"
+          }
+        },
+        {
           "type": "sequential",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "twerk1"
+                  "pathName": "twerk2"
                 }
               },
               {
                 "type": "path",
                 "data": {
+                  "pathName": "twerk3"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
                   "pathName": "twerk2"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "twerk3"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "twerk2"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "twerk3"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "twerk2"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "twerk3"
                 }
               }
             ]

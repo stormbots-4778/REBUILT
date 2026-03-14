@@ -23,7 +23,6 @@ public class RobotConfiguration {
 
     public static final class DriveConfig {
         public static final double maxSpeed = 1;
-        // public static final double maxAngularSpeed = Math.PI / 2;
         public static final double maxAngularSpeed = Math.PI;
 
         private static final int drivingMotorPinionTeeth = 15;
@@ -81,8 +80,7 @@ public class RobotConfiguration {
                         .velocityConversionFactor(drivingFactor / 60.0); // meters per second
                 drivingConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        // These are example gains you may need to them for your own robot!
-                        .pid(0.04, 0, 0)
+                        .pid(0.08, 0, 0)
                         .outputRange(-1, 1).feedForward.kV(1.98).kA(0.25);
 
                 turningConfig
