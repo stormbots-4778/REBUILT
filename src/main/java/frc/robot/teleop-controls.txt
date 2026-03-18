@@ -10,10 +10,4 @@ options ........... reset imu
 B ................. deploy intake
 Y ................. retract intake (not implemented)
 
-pov right ......... autoaim offset angle +
-pov left .......... autoaim offset angle -
-pov up  ........... autoaim offset distance +
-pov down .......... autoaim offset distance -
-left bumper ....... autoaim offset reset
-
-hood will be down UNLESS feeding or autotargeting (X or right trigger)
+hood will be down UNLESS feeding or autotargeting or shoot distance override (X or right trigger or A)
