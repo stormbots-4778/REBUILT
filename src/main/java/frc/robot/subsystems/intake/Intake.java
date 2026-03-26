@@ -9,9 +9,11 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.configuration.RobotConfiguration.IntakeConfig;
 import frc.robot.subsystems.shooting.Shooters;
+import frc.robot.subsystems.feeding.Feeder;
 
 public class Intake extends SubsystemBase {
     private static SparkMax setupSpark(int can, SparkMaxConfig config) {
@@ -25,70 +27,26 @@ public class Intake extends SubsystemBase {
             IntakeConfig.intakerConfig);
     private final SparkClosedLoopController intakerController = intakerMotor.getClosedLoopController();
 
-    private final SparkMax pivotMotor = setupSpark(
-            IntakeConfig.pivotCAN,
-            IntakeConfig.pivotConfig);
-
-    private final SparkMax conveyorMotor = setupSpark(
-            IntakeConfig.conveyorCAN,
-            IntakeConfig.conveyorConfig);
-    private final SparkClosedLoopController conveyorController = conveyorMotor.getClosedLoopController();
-
-    public Command deploy() {
-        return run(() -> pivotMotor.setVoltage(-3)).withTimeout(2)
-                .andThen(() -> pivotMotor.setVoltage(0));
+    public Command intake2() {
+        return runEnd(() -> intakerController.setSetpoint(IntakeConfig.INTAKER_SPEED, ControlType.kVelocity),
+                this::stop);
     }
 
-    public Command startIntaking() {
-        return runOnce(this::start);
+    public Command intake(Feeder feeder) {
+        return runEnd(() -> intakerController.setSetpoint(IntakeConfig.INTAKER_SPEED, ControlType.kVelocity),
+                this::stop).deadlineFor(feeder.outtakeIndexer());
     }
 
-    public Command stopIntaking() {
-        return runOnce(this::stop);
-    }
-
-    public Command intake(Shooters shooters) {
-        return runEnd(this::start, this::stop).deadlineFor(shooters.outtakeIndexer());
-    }
-
-    public Command outtake(Shooters shooters) {
-        return runEnd(this::reverse, this::stop).deadlineFor(shooters.outtakeIndexer());
-    }
-
-    private void setConveyor(double speed) {
-        conveyorController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl);
-    }
-
-    public Command agitate(Shooters shooters) {
-        return runEnd(() -> {
-            setConveyor(-IntakeConfig.CONVEYOR_SPEED_INTAKE);
-        }, this::stop).deadlineFor(shooters.outtakeIndexer());
-    }
-
-    public Command runConveyorShoot() {
-        return runEnd(
-                () -> {
-                    setConveyor(IntakeConfig.CONVEYOR_SPEED_SHOOT);
-                },
-                this::stopConveyor);
-    }
-
-    private void start() {
-        intakerController.setSetpoint(IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
-        setConveyor(IntakeConfig.CONVEYOR_SPEED_INTAKE);
-    }
-
-    private void reverse() {
-        intakerController.setSetpoint(-IntakeConfig.INTAKER_SPEED, ControlType.kVelocity);
-        setConveyor(-IntakeConfig.CONVEYOR_SPEED_INTAKE);
-    }
-
-    public void stopConveyor() {
-        setConveyor(0);
+    public Command outtake(Feeder feeder) {
+        return runEnd(() -> intakerController.setSetpoint(-IntakeConfig.INTAKER_SPEED, ControlType.kVelocity),
+                this::stop).deadlineFor(feeder.pushOut());
     }
 
     private void stop() {
         intakerController.setSetpoint(0, ControlType.kVelocity);
-        stopConveyor();
+    }
+
+    public void temperatureRead(){
+        intakerMotor.getMotorTemperature();
     }
 }

@@ -92,8 +92,8 @@ public class Drivetrain extends SubsystemBase {
                 this::getChassisSpeeds,
                 this::setChassisSpeeds,
                 new PPHolonomicDriveController(
-                        new PIDConstants(30, 0, 0.01),
-                        new PIDConstants(4, 0.1, 0)),
+                        new PIDConstants(150, 0, 0.01),
+                        new PIDConstants(100, 1, 0)),
                 config,
                 () -> {
                     var alliance = DriverStation.getAlliance();
@@ -109,7 +109,6 @@ public class Drivetrain extends SubsystemBase {
      * Tell me where I am.
      */
     public void usePoseEstimate(Pose2d pose, double timestamp) {
-        System.out.println("Using pose estimate: " + pose.getTranslation());
         if (!hasLocalizedWithVision)
             m_poseEstimator.resetPosition(getGyroYaw(), new SwerveModulePosition[] {
                     m_frontLeft.getPosition(),
@@ -135,15 +134,14 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (hasLocalizedWithVision)
-            m_poseEstimator.update(
-                    getGyroYaw(),
-                    new SwerveModulePosition[] {
-                            m_frontLeft.getPosition(),
-                            m_frontRight.getPosition(),
-                            m_backLeft.getPosition(),
-                            m_backRight.getPosition()
-                    });
+        m_poseEstimator.update(
+                getGyroYaw(),
+                new SwerveModulePosition[] {
+                        m_frontLeft.getPosition(),
+                        m_frontRight.getPosition(),
+                        m_backLeft.getPosition(),
+                        m_backRight.getPosition()
+                });
 
         m_gyroAccels[0] = m_gyro.getAccelerationX().getValueAsDouble();
         m_gyroAccels[1] = m_gyro.getAccelerationY().getValueAsDouble();
@@ -154,10 +152,12 @@ public class Drivetrain extends SubsystemBase {
     /**
      * I'm looking forward!
      */
-    public Command resetIMU = runOnce(
-            () -> {
-                m_gyro.reset();
-            });
+    public Command resetIMU() {
+        return runOnce(
+                () -> {
+                    m_gyro.reset();
+                });
+    }
 
     /**
      * Where am I looking?
@@ -194,13 +194,16 @@ public class Drivetrain extends SubsystemBase {
      * @param xSpeed        Speed in the x direction (forward).
      * @param ySpeed        Speed in the y direction (sideways).
      * @param rot           My angular rate.
+     * @param limitSpeed    Whether to use a limited maximum speed.
      * @param fieldRelative Whether the provided x and y speeds are relative to the
      *                      field.
      */
-    public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+    public void drive(double xSpeed, double ySpeed, double rot, boolean limitSpeed, boolean fieldRelative) {
+        double maxSpeed = limitSpeed ? DriveConfig.maxSpeedLimited : DriveConfig.maxSpeed;
+
         // Convert the commanded speeds into the correct units for my drivetrain.
-        double xSpeedDelivered = xSpeed * DriveConfig.maxSpeed;
-        double ySpeedDelivered = ySpeed * DriveConfig.maxSpeed;
+        double xSpeedDelivered = xSpeed * maxSpeed;
+        double ySpeedDelivered = ySpeed * maxSpeed;
         double rotDelivered = rot * DriveConfig.maxAngularSpeed;
         var swerveModuleStates = DriveConfig.kinematics.toSwerveModuleStates(
                 fieldRelative
@@ -208,7 +211,7 @@ public class Drivetrain extends SubsystemBase {
                                 getGyroYaw())
                         : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
         SwerveDriveKinematics.desaturateWheelSpeeds(
-                swerveModuleStates, DriveConfig.maxSpeed);
+                swerveModuleStates, maxSpeed);
         m_frontLeft.setDesiredState(swerveModuleStates[0]);
         m_frontRight.setDesiredState(swerveModuleStates[1]);
         m_backLeft.setDesiredState(swerveModuleStates[2]);

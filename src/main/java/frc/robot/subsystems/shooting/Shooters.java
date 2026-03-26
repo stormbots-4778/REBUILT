@@ -56,18 +56,15 @@ public class Shooters extends SubsystemBase {
         }
 
         public void setAngle(double degrees) {
-            servo1.setAngle(90 - degrees);
-            servo2.setAngle(90 - -degrees);
+            servo2.setAngle(90 - degrees); //left
+            servo1.setAngle(90 - -degrees); //right
+            // servo1.set(0.5);
+            // servo2.set(0.5);
         }
     }
 
     private final DoubleShooterSparks flywheels;
     private final DoubleServo hoods;
-
-    private final SparkMax kickwheelMotor;
-    private final SparkClosedLoopController kickwheelController;
-    private final SparkFlex indexerMotor;
-    private final SparkClosedLoopController indexerController;
 
     public Shooters() {
         flywheels = new DoubleShooterSparks(
@@ -79,73 +76,66 @@ public class Shooters extends SubsystemBase {
         hoods = new DoubleServo(
                 RobotConfiguration.ShooterConfig.hood1Port,
                 RobotConfiguration.ShooterConfig.hood2Port);
-
-        kickwheelMotor = setupSpark(RobotConfiguration.ShooterConfig.kickwheelCAN,
-                RobotConfiguration.ShooterConfig.kickwheelConfig);
-        kickwheelController = kickwheelMotor.getClosedLoopController();
-
-        indexerMotor = new SparkFlex(RobotConfiguration.ShooterConfig.indexerCAN, MotorType.kBrushless);
-        indexerMotor.configure(RobotConfiguration.ShooterConfig.indexerConfig, ResetMode.kResetSafeParameters,
-                PersistMode.kNoPersistParameters);
-        indexerController = indexerMotor.getClosedLoopController();
     }
 
-    private void setVelocity(SparkClosedLoopController controller, double velocity) {
-        controller.setSetpoint(velocity, ControlType.kVelocity);
-    }
-
-    private static final double KICKWHEEL_AT_SPEED_THRESHOLD = 750;
-
-    private boolean kickwheelAtSpeed() {
-        return Math.abs(kickwheelMotor.getEncoder().getVelocity())
-                + KICKWHEEL_AT_SPEED_THRESHOLD > RobotConfiguration.ShooterConfig.KICKWHEEL_SPEED;
-    }
-
-    public Command outtakeIndexer() {
-        // return run(() -> setVelocity(indexerController,
-        // -RobotConfiguration.ShooterConfig.INDEXER_KICKOUT_SPEED));
-        return runEnd(() -> indexerMotor.setVoltage(6), () -> indexerMotor.setVoltage(0));
-    }
-
-    public Command feed(Intake intake) {
-        return run(() -> setVelocity(kickwheelController, RobotConfiguration.ShooterConfig.KICKWHEEL_SPEED))
-                .alongWith(
-                        new WaitUntilCommand(this::kickwheelAtSpeed).andThen(
-                                new RunCommand(() -> {
-                                    // setVelocity(indexerController,
-                                    // -RobotConfiguration.ShooterConfig.INDEXER_SPEED);
-                                    indexerMotor.setVoltage(-6);
-                                }).alongWith(intake.runConveyorShoot())))
-                .finallyDo(() -> {
-                    // setVelocity(indexerController, 0);
-                    indexerMotor.setVoltage(0);
-                    setVelocity(kickwheelController, 0);
-                });
-    }
-
-    // for auto
-    public Command runAtVelocity(double velocity) {
-        return run(() -> flywheels.set(velocity));
-    }
-
-    public Command setHood(double angle) {
-        return run(() -> hoods.setAngle(angle));
-    }
-
-    public Command useDistance(DoubleSupplier distanceSupplier, BooleanSupplier enableHood) {
+    public Command useDistance(DoubleSupplier distanceSupplier, BooleanSupplier enableHood, BooleanSupplier enableFlywheel) {
         return run(() -> {
             double distance = distanceSupplier.getAsDouble();
-            System.out.println("Shooter: Distance = " + distance);
             Double shootval = ShootingDistanceTables.shooter.get(distance);
-            flywheels.set(shootval);
+            flywheels.set(enableFlywheel.getAsBoolean() ? shootval : 2000);
             hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) : 0);
         });
     }
 
-    public Command setPower(double shooterSpeed, double hoodAngle) {
+    private double hoodOffset = 0;
+
+    public void incrementHoodOffset() {
+        hoodOffset += 1.0;
+    }
+
+    public void decrementHoodOffset() {
+        hoodOffset -= 1.0;
+    }
+
+    public double returnHoodOffset(){
+        return hoodOffset;
+    }
+
+    private double shooterOffset = 0;
+
+    public void incrementShooterOffset() {
+        shooterOffset += 25;
+    }
+
+    public void decrementShooterOffset() {
+        shooterOffset -= 25;
+    }
+
+    public double returnShooterOffset(){
+        return shooterOffset;
+    }
+
+    public Command useDistance2(
+            DoubleSupplier distanceSupplier,
+            BooleanSupplier enableHood,
+            BooleanSupplier enableFlywheel
+            ) {
         return run(() -> {
-            flywheels.set(shooterSpeed);
-            hoods.setAngle(hoodAngle);
+            double distance = distanceSupplier.getAsDouble();
+            Double shootval = ShootingDistanceTables.shooter.get(distance);
+            
+            flywheels.set(enableFlywheel.getAsBoolean() ? shootval + shooterOffset : 2000);
+            hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) + hoodOffset : 0);
         });
     }
+    
+
+   
+
+    // public Command setPower(double shooterSpeed, double hoodAngle) {
+    //     return run(() -> {
+    //         flywheels.set(shooterSpeed);
+    //         hoods.setAngle(hoodAngle);
+    //     });
+    // }
 }

@@ -8,6 +8,6 @@ X ................. autotarget
 A ................. shoot distance override (set distance to low)
 options ........... reset imu
 B ................. deploy intake
-Y ................. retract intake (not implemented)
+Y ................. retract intake
 
 hood will be down UNLESS feeding or autotargeting or shoot distance override (X or right trigger or A)

@@ -23,14 +23,20 @@ import frc.robot.configuration.RobotConfiguration.DriveConfig;
 import frc.robot.subsystems.driving.Drivetrain;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooting.Shooters;
+import frc.robot.subsystems.shooting.ballDistanceTimeTables;
 import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.agitation.Agitator;
+import frc.robot.subsystems.feeding.Feeder;
 
 public class RobotContainer {
     private final CommandXboxController m_controller = new CommandXboxController(0);
+    private final CommandXboxController m_controller2 = new CommandXboxController(1);
     private final Drivetrain m_drivetrain = new Drivetrain();
     private final Vision m_vision = new Vision();
     private final Shooters m_shooter = new Shooters();
     private final Intake m_intake = new Intake();
+    private final Feeder m_feeder = new Feeder();
+    private final Agitator m_agitator = new Agitator();
 
     private final SendableChooser<Command> autoChooser;
 
@@ -44,8 +50,20 @@ public class RobotContainer {
 
     private StructPublisher<Translation2d> m_goalPositionPublisher;
     private StructPublisher<Translation2d> m_aimAtGoalPositionPublisher;
+    private double autoAimMultiplier = 1.25;
+    private boolean sideBlueRed = false; //true for blue, false for red
 
     public RobotContainer() {
+            m_controller.povUp().onTrue(Commands.runOnce(() -> m_shooter.incrementHoodOffset()));
+            m_controller.povDown().onTrue(Commands.runOnce(() -> m_shooter.decrementHoodOffset()));
+
+             m_controller.povRight().onTrue(Commands.runOnce(() -> m_shooter.incrementShooterOffset()));
+            m_controller.povLeft().onTrue(Commands.runOnce(() -> m_shooter.decrementShooterOffset()));
+
+
+            m_controller2.povUp().onTrue(Commands.runOnce(() -> {sideBlueRed = true;})); // blue
+            m_controller2.povDown().onTrue(Commands.runOnce(() -> {sideBlueRed = false;})); //red
+
         m_goalPositionPublisher = NetworkTableInstance.getDefault()
                 .getStructTopic("4778GoalPosition", Translation2d.struct).publish();
         m_aimAtGoalPositionPublisher = NetworkTableInstance.getDefault()
@@ -54,14 +72,16 @@ public class RobotContainer {
         configureNamedCommands();
         setAlliance(DriverStation.getAlliance().orElse(Alliance.Red));
 
+        
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
         m_vision.setDefaultCommand(new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain), m_vision));
         m_shooter.setDefaultCommand(
-                m_shooter.useDistance(
+                m_shooter.useDistance2(
                         this::shooterShootDistance,
                         m_controller.x()
                                 .or(m_controller.rightTrigger(0.2))
-                                .or(m_controller.a())));
+                                .or(m_controller.a()),
+                        m_controller.x().or(m_controller.rightTrigger(0.2))));
 
         configureButtonBindings();
         autoChooser = AutoBuilder.buildAutoChooser();
@@ -72,8 +92,13 @@ public class RobotContainer {
         m_alliance = alliance;
         m_goalPosition = FieldConfiguration.getGoalPosition(alliance);
         m_aimAtGoalPosition = m_goalPosition;
+        m_vision.setAlliance(alliance);
 
         m_goalPositionPublisher.set(m_goalPosition);
+    }
+
+    private Command resetHeading() {
+        return Commands.parallel(m_drivetrain.resetIMU(), m_vision.zeroLimelightIMU());
     }
 
     /**
@@ -87,34 +112,46 @@ public class RobotContainer {
     }
 
     private void configureNamedCommands() {
-        NamedCommands.registerCommand("Activate Hood", m_shooter.setHood(20));
-        NamedCommands.registerCommand("Deactivate Hood", m_shooter.setHood(0));
-        NamedCommands.registerCommand("Feed Shooter", m_shooter.feed(m_intake).withTimeout(3));
-        NamedCommands.registerCommand("Feed Shooter Quick", m_shooter.feed(m_intake).withTimeout(1));
-        NamedCommands.registerCommand("Start Intaking", m_intake.intake(m_shooter));
-        NamedCommands.registerCommand("Agitate", m_intake.agitate(m_shooter).withTimeout(1));
-        NamedCommands.registerCommand("Stop Intaking", m_intake.stopIntaking());
-        NamedCommands.registerCommand("Deploy Intaker", m_intake.deploy());
+        NamedCommands.registerCommand("Intake", m_intake.intake(m_feeder));
+        NamedCommands.registerCommand("Deploy Intaker", m_agitator.deploy().withTimeout(1));
+        NamedCommands.registerCommand("Reset Heading", resetHeading());
+
+        NamedCommands.registerCommand("Shoot Routine", Commands.deadline(
+                Commands.sequence(
+                        Commands.waitSeconds(0.25),
+                        m_feeder.feed().withTimeout(5)),
+                m_shooter.useDistance(this::shooterShootDistance, () -> true, () -> true)));
     }
 
     private void configureButtonBindings() {
-        System.out.println("Shooting while moving: aiming at " + m_aimAtGoalPosition + " (difference of "
-                + m_goalPosition.minus(m_aimAtGoalPosition) + ")");
-
         m_controller.leftTrigger().and(m_controller.rightBumper().negate())
-                .whileTrue(new RepeatCommand(m_intake.intake(m_shooter)));
+                .whileTrue(new RepeatCommand(m_intake.intake(m_feeder)));
 
-        m_controller.rightBumper().whileTrue(new RepeatCommand(m_intake.agitate(m_shooter)));
+        // m_controller.rightBumper().whileTrue(new
+        // RepeatCommand(m_agitator.agitate(m_intake))); 
+
         // while right trigger and not right bumper (agitate cancels feed)
-        m_controller.rightTrigger().and(m_controller.rightBumper().negate())
-                .whileTrue(m_shooter.feed(m_intake));
+        m_controller.rightTrigger()
+                .whileTrue(m_feeder.feed().alongWith(m_agitator.agitate(m_intake)));
+
+                //todo review
+        m_controller.x().and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftX(), 0.1)) == 0)
+            .and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftY(), 0.1)) == 0)
+            .debounce(2)
+            .whileTrue(new RepeatCommand(Commands.run(() -> m_drivetrain.setX())));
+
+        
+        // m_controller.rightTrigger().and(m_controller.rightBumper().negate())
+        //         .whileTrue(Commands.sequence(m_feeder.feed()));        
 
         // overrides intake and agitate
         m_controller.leftTrigger().and(m_controller.rightBumper())
-                .whileTrue(new RepeatCommand(m_intake.outtake(m_shooter)));
+                .whileTrue(new RepeatCommand(m_intake.outtake(m_feeder)));
 
-        m_controller.back().onTrue(Commands.parallel(m_drivetrain.resetIMU, m_vision.zeroLimelightIMU));
-        m_controller.b().onTrue(m_intake.deploy());
+        m_controller.back().onTrue(resetHeading());
+
+        m_controller.b().whileTrue(m_agitator.deploy());
+        m_controller.y().whileTrue(m_agitator.retract());
 
         m_controller.leftStick().onTrue(new InstantCommand(
                 () -> setAlliance(Alliance.Blue)));
@@ -126,6 +163,12 @@ public class RobotContainer {
      * I like to move it move it
      */
     private void drive() {
+        System.out.println(shooterShootDistance());
+        System.out.println(m_shooter.returnHoodOffset());
+        System.out.println(m_shooter.returnShooterOffset());
+        System.out.println("side?: true for blue:::: " + sideBlueRed);
+        
+        setAlliance(DriverStation.getAlliance().orElse(Alliance.Red));
         m_aimAtGoalPosition = autoaimTarget();
         m_aimAtGoalPositionPublisher.set(m_aimAtGoalPosition);
 
@@ -134,8 +177,10 @@ public class RobotContainer {
         final var ySpeed = MathUtil.applyDeadband(m_controller.getLeftX(), 0.02)
                 * DriveConfig.maxSpeed;
 
-        double rotation = m_controller.x().getAsBoolean() ? autotargetRotation() : driverRotation();
-        m_drivetrain.drive(xSpeed, ySpeed, rotation, USE_FIELD_RELATIVE);
+        boolean shouldAutoTarget = m_controller.x().getAsBoolean();
+        double rotation = shouldAutoTarget ? autotargetRotation() : driverRotation();
+
+        m_drivetrain.drive(xSpeed, ySpeed, rotation, shouldAutoTarget, USE_FIELD_RELATIVE);
     }
 
     /**
@@ -160,9 +205,15 @@ public class RobotContainer {
         ChassisSpeeds botVelocityField = ChassisSpeeds.fromRobotRelativeSpeeds(m_drivetrain.getChassisSpeeds(),
                 m_drivetrain.getGyroYaw());
         Translation2d difference = new Translation2d(
-                botVelocityField.vxMetersPerSecond,
-                botVelocityField.vyMetersPerSecond);
-        return m_goalPosition.minus(difference);
+                botVelocityField.vxMetersPerSecond * autoAimMultiplier,
+                botVelocityField.vyMetersPerSecond * autoAimMultiplier);   
+
+        if(sideBlueRed){
+            return m_goalPosition.plus(difference); //plus for blue, difference for red
+        }else{
+            return m_goalPosition.minus(difference);
+        }
+        // return m_goalPosition.plus(difference);
     }
 
     /**
@@ -184,15 +235,11 @@ public class RobotContainer {
         return MathUtil.angleModulus(targetAngle - robotHeading);
     }
 
-    private Command basicShootAuto = Commands.sequence(
-            // m_shooter.useDistance(this::shooterShootDistance, () -> true)
-            // .withDeadline(m_intake.deploy()),
-            m_shooter.setPower(3150, 15).withDeadline(m_intake.deploy()),
-            new RepeatCommand(Commands.sequence(m_shooter.feed(m_intake).withTimeout(3),
-                    m_intake.agitate(m_shooter).withTimeout(1))));
-
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
-        // return basicShootAuto;
+    }
+
+    public double timeMultiplier(double distance){
+        return ballDistanceTimeTables.time.get(distance);
     }
 }

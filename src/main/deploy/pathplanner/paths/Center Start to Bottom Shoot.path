@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 1.7148636363636363,
-        "y": 4.0
+        "x": 3.25,
+        "y": 2.5
       },
       "prevControl": {
-        "x": 2.8486307382966647,
-        "y": 4.0
+        "x": 4.383767101933028,
+        "y": 2.5
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Shoot Point Bottom"
     }
   ],
   "rotationTargets": [],
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.0,
+    "maxVelocity": 2.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 180.0,
     "maxAngularAcceleration": 360.0,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 50.0
   },
   "reversed": false,
   "folder": null,

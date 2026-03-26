@@ -16,16 +16,32 @@
     },
     {
       "anchor": {
-        "x": 5.0,
+        "x": 5.54313577586207,
+        "y": 7.465571120689656
+      },
+      "prevControl": {
+        "x": 6.993035607547146,
+        "y": 7.279311948357317
+      },
+      "nextControl": {
+        "x": 1.6629741379310352,
+        "y": 7.964030172413794
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.25,
         "y": 5.5
       },
       "prevControl": {
-        "x": 6.5,
-        "y": 5.5
+        "x": 2.6794396551724144,
+        "y": 7.084396551724138
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Top Bump"
+      "linkedName": "Shoot Point Top"
     }
   ],
   "rotationTargets": [],
@@ -33,7 +49,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.0,
+    "maxVelocity": 2.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 180.0,
     "maxAngularAcceleration": 360.0,
@@ -42,7 +58,7 @@
   },
   "goalEndState": {
     "velocity": 1.0,
-    "rotation": 180.0
+    "rotation": -50.0
   },
   "reversed": false,
   "folder": null,
