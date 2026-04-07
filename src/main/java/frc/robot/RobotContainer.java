@@ -51,18 +51,19 @@ public class RobotContainer {
     private StructPublisher<Translation2d> m_goalPositionPublisher;
     private StructPublisher<Translation2d> m_aimAtGoalPositionPublisher;
     private double autoAimMultiplier = 1.25;
-    private boolean sideBlueRed = false; //true for blue, false for red
+    private boolean sideBlueRed = false; // true for blue, false for red
 
     public RobotContainer() {
-            m_controller.povUp().onTrue(Commands.runOnce(() -> m_shooter.incrementHoodOffset()));
-            m_controller.povDown().onTrue(Commands.runOnce(() -> m_shooter.decrementHoodOffset()));
+        m_controller.povUp().onTrue(Commands.runOnce(() -> m_shooter.incrementHoodOffset()));
+        m_controller.povDown().onTrue(Commands.runOnce(() -> m_shooter.decrementHoodOffset()));
 
-             m_controller.povRight().onTrue(Commands.runOnce(() -> m_shooter.incrementShooterOffset()));
-            m_controller.povLeft().onTrue(Commands.runOnce(() -> m_shooter.decrementShooterOffset()));
+        m_controller.povRight().onTrue(Commands.runOnce(() -> m_shooter.incrementShooterOffset()));
+        m_controller.povLeft().onTrue(Commands.runOnce(() -> m_shooter.decrementShooterOffset()));
 
-
-            m_controller2.povUp().onTrue(Commands.runOnce(() -> {sideBlueRed = true;})); // blue
-            m_controller2.povDown().onTrue(Commands.runOnce(() -> {sideBlueRed = false;})); //red
+        // m_controller2.povUp().onTrue(Commands.runOnce(() -> {sideBlueRed = true;}));
+        // // blue
+        // m_controller2.povDown().onTrue(Commands.runOnce(() -> {sideBlueRed =
+        // false;})); //red
 
         m_goalPositionPublisher = NetworkTableInstance.getDefault()
                 .getStructTopic("4778GoalPosition", Translation2d.struct).publish();
@@ -72,11 +73,10 @@ public class RobotContainer {
         configureNamedCommands();
         setAlliance(DriverStation.getAlliance().orElse(Alliance.Red));
 
-        
         m_drivetrain.setDefaultCommand(new RunCommand(this::drive, m_drivetrain));
         m_vision.setDefaultCommand(new RunCommand(() -> m_vision.passIntoDrivetrain(m_drivetrain), m_vision));
         m_shooter.setDefaultCommand(
-                m_shooter.useDistance2(
+                m_shooter.useDistance(
                         this::shooterShootDistance,
                         m_controller.x()
                                 .or(m_controller.rightTrigger(0.2))
@@ -113,13 +113,36 @@ public class RobotContainer {
 
     private void configureNamedCommands() {
         NamedCommands.registerCommand("Intake", m_intake.intake(m_feeder));
-        NamedCommands.registerCommand("Deploy Intaker", m_agitator.deploy().withTimeout(1));
+        NamedCommands.registerCommand("Deploy Intaker", m_agitator.deploy().withTimeout(0.25));
         NamedCommands.registerCommand("Reset Heading", resetHeading());
 
         NamedCommands.registerCommand("Shoot Routine", Commands.deadline(
                 Commands.sequence(
                         Commands.waitSeconds(0.25),
-                        m_feeder.feed().withTimeout(5)),
+                        m_feeder.feed().withTimeout(10).alongWith(m_agitator.agitate(m_intake))),
+                m_shooter.useDistance(this::shooterShootDistance, () -> true, () -> true)));
+
+        /*
+         * Below are the emergency shoot routines for blue right and left
+         */
+
+        NamedCommands.registerCommand("Shoot Routine BLUE RIGHT", Commands.deadline(
+                Commands.sequence(
+                        Commands.waitSeconds(0.25),
+                        m_feeder.feed().withTimeout(10).alongWith(m_agitator.agitate(m_intake))),
+                m_shooter.useDistance2(2.3, () -> true, () -> true))); // put manual distance for RIGHT SIDE AUTO. i
+                                                                       // think this value is ok
+
+        NamedCommands.registerCommand("Shoot Routine BLUE LEFT", Commands.deadline(
+                Commands.sequence(
+                        Commands.waitSeconds(0.25),
+                        m_feeder.feed().withTimeout(10).alongWith(m_agitator.agitate(m_intake))),
+                m_shooter.useDistance2(2.3, () -> true, () -> true))); // put manual distance for LEFT SIDE AUTO
+
+        NamedCommands.registerCommand("DEPOT Shoot Routine", Commands.deadline(
+                Commands.sequence(
+                        Commands.waitSeconds(0.25),
+                        m_feeder.feed().withTimeout(6.7).alongWith(m_agitator.agitate(m_intake))),
                 m_shooter.useDistance(this::shooterShootDistance, () -> true, () -> true)));
     }
 
@@ -128,21 +151,21 @@ public class RobotContainer {
                 .whileTrue(new RepeatCommand(m_intake.intake(m_feeder)));
 
         // m_controller.rightBumper().whileTrue(new
-        // RepeatCommand(m_agitator.agitate(m_intake))); 
+        // RepeatCommand(m_agitator.agitate(m_intake)));
 
         // while right trigger and not right bumper (agitate cancels feed)
         m_controller.rightTrigger()
-                .whileTrue(m_feeder.feed().alongWith(m_agitator.agitate(m_intake)));
+                .whileTrue(m_feeder.pushOut().withTimeout(0.5)
+                        .andThen(m_feeder.feed().alongWith(m_agitator.agitate(m_intake)))); // m_feeder.pushOut().withTimeout(1)
 
-                //todo review
+        // todo review
         m_controller.x().and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftX(), 0.1)) == 0)
-            .and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftY(), 0.1)) == 0)
-            .debounce(2)
-            .whileTrue(new RepeatCommand(Commands.run(() -> m_drivetrain.setX())));
+                .and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftY(), 0.1)) == 0)
+                .debounce(2)
+                .whileTrue(new RepeatCommand(Commands.run(() -> m_drivetrain.setX())));
 
-        
         // m_controller.rightTrigger().and(m_controller.rightBumper().negate())
-        //         .whileTrue(Commands.sequence(m_feeder.feed()));        
+        // .whileTrue(Commands.sequence(m_feeder.feed()));
 
         // overrides intake and agitate
         m_controller.leftTrigger().and(m_controller.rightBumper())
@@ -163,11 +186,12 @@ public class RobotContainer {
      * I like to move it move it
      */
     private void drive() {
-        System.out.println(shooterShootDistance());
-        System.out.println(m_shooter.returnHoodOffset());
-        System.out.println(m_shooter.returnShooterOffset());
-        System.out.println("side?: true for blue:::: " + sideBlueRed);
-        
+        // System.out.println(shooterShootDistance());
+        // System.out.println(m_shooter.returnHoodOffset());
+        // System.out.println(m_shooter.returnShooterOffset());
+        // System.out.println("side?: true for blue:::: " + sideBlueRed);
+        // System.out.println(DriverStation.getAlliance());
+
         setAlliance(DriverStation.getAlliance().orElse(Alliance.Red));
         m_aimAtGoalPosition = autoaimTarget();
         m_aimAtGoalPositionPublisher.set(m_aimAtGoalPosition);
@@ -206,11 +230,13 @@ public class RobotContainer {
                 m_drivetrain.getGyroYaw());
         Translation2d difference = new Translation2d(
                 botVelocityField.vxMetersPerSecond * autoAimMultiplier,
-                botVelocityField.vyMetersPerSecond * autoAimMultiplier);   
+                botVelocityField.vyMetersPerSecond * autoAimMultiplier);
 
-        if(sideBlueRed){
-            return m_goalPosition.plus(difference); //plus for blue, difference for red
-        }else{
+        if (m_alliance == Alliance.Blue) {
+            sideBlueRed = true;
+            return m_goalPosition.plus(difference); // plus for blue, difference for red
+        } else {
+            sideBlueRed = false;
             return m_goalPosition.minus(difference);
         }
         // return m_goalPosition.plus(difference);
@@ -239,7 +265,8 @@ public class RobotContainer {
         return autoChooser.getSelected();
     }
 
-    public double timeMultiplier(double distance){
+    // not used
+    public double timeMultiplier(double distance) {
         return ballDistanceTimeTables.time.get(distance);
     }
 }

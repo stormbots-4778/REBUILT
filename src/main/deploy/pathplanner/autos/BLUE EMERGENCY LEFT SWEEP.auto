@@ -7,19 +7,19 @@
         {
           "type": "named",
           "data": {
-            "name": "Deploy Intaker"
+            "name": "Reset Heading"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Reset Heading"
+            "name": "Deploy Intaker"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Start under the trwch"
+            "pathName": "trench to center line LEFT"
           }
         },
         {
@@ -29,7 +29,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "grab ballz"
+                  "pathName": "center line grab balls LEFT"
                 }
               },
               {
@@ -44,19 +44,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "fuel pile to start"
+            "pathName": "fuel pile to start LEFT"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "start to shoot"
+            "pathName": "trench to shoot LEFT"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot Routine"
+            "name": "Shoot Routine BLUE LEFT"
           }
         }
       ]

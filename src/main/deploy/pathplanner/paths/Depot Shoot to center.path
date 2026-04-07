@@ -3,37 +3,42 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.018437500000001,
-        "y": 7.406928879310345
+        "x": 2.8846875000000005,
+        "y": 5.2958081896551725
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.2385129310344842,
-        "y": 7.475344827586207
+        "x": 1.0667780172413808,
+        "y": 7.8760668103448275
       },
       "isLocked": false,
-      "linkedName": "hamburger3"
+      "linkedName": "titan holo"
     },
     {
       "anchor": {
-        "x": 2.973,
-        "y": 5.55
+        "x": 5.748383620689656,
+        "y": 7.455797413793103
       },
       "prevControl": {
-        "x": 2.135316665716054,
-        "y": 6.235147706373805
+        "x": 4.748383620689656,
+        "y": 7.455797413793103
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.0,
+    "maxVelocity": 2.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 180.0,
     "maxAngularAcceleration": 360.0,
@@ -41,14 +46,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0.0,
-    "rotation": -50.009
+    "velocity": 0,
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
-    "velocity": 0.5,
-    "rotation": 0.0
+    "velocity": 0,
+    "rotation": -38.15722658736902
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }

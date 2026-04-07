@@ -7,19 +7,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Deploy Intaker"
+            "name": "Reset Heading"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Reset Heading"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Start under the trwch"
+            "name": "Deploy Intaker"
           }
         },
         {
@@ -29,7 +23,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "grab ballz"
+                  "pathName": "Trench to depot"
                 }
               },
               {
@@ -44,19 +38,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "fuel pile to start"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "start to shoot"
+            "pathName": "Depot to shoot"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Shoot Routine"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Depot Shoot to center"
           }
         }
       ]

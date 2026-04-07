@@ -37,7 +37,8 @@ public class ShootingDistanceTables {
             .add(2.4, 3500, 37)
             .add(2.8, 3600, 46)
             .add(3.2, 3750, 38)
-            .add(3.7, 3900, 40)
+            .add(3.7, 3975, 40)
+            .add(3.9, 4075, 42)
             .add(4.5, 4250, 46);
 
     public static final InterpolatingDoubleTreeMap shooter = tables.sMap;

@@ -25,7 +25,7 @@ public class Feeder extends SubsystemBase {
     private final SparkClosedLoopController indexerController;
     private static final int INDEXER_GO = -6;
 
-    private static final int INDEXER_VELOCITY_INTAKE = -3000; //1000
+    private static final int INDEXER_VELOCITY_INTAKE = -4000; //1000
     private static final int INDEXER__VELOCITY_OUTAKE = 500;
     private final SparkMax conveyorMotor;
     private final SparkClosedLoopController conveyorController;
@@ -82,11 +82,6 @@ public class Feeder extends SubsystemBase {
                                     setIndexerVelocity(INDEXER_VELOCITY_INTAKE);
                                     setConveyor(IntakeConfig.CONVEYOR_SPEED_SHOOT);
                                 })))
-                .andThen(
-                    run(() -> {
-                        // indexerMotor.setVoltage(-INDEXER_GO);
-                        setIndexerVelocity(-INDEXER__VELOCITY_OUTAKE);
-                        setKickwheel(-RobotConfiguration.ShooterConfig.KICKWHEEL_SPEED);}).withTimeout(3.0))
                 .finallyDo(() -> {
                     // setVelocity(indexerController, 0);
                     setIndexerVelocity(0);
@@ -114,6 +109,7 @@ public class Feeder extends SubsystemBase {
             setIndexerVelocity(INDEXER__VELOCITY_OUTAKE);
         }, () -> {
             setConveyor(0);
+            setIndexerVelocity(0);
             // indexerMotor.setVoltage(0);
         });
     }

@@ -56,8 +56,8 @@ public class Shooters extends SubsystemBase {
         }
 
         public void setAngle(double degrees) {
-            servo2.setAngle(90 - degrees); //left
-            servo1.setAngle(90 - -degrees); //right
+            servo2.setAngle(90 - degrees); // left
+            servo1.setAngle(90 - -degrees); // right
             // servo1.set(0.5);
             // servo2.set(0.5);
         }
@@ -78,7 +78,8 @@ public class Shooters extends SubsystemBase {
                 RobotConfiguration.ShooterConfig.hood2Port);
     }
 
-    public Command useDistance(DoubleSupplier distanceSupplier, BooleanSupplier enableHood, BooleanSupplier enableFlywheel) {
+    public Command useDistance(DoubleSupplier distanceSupplier, BooleanSupplier enableHood,
+            BooleanSupplier enableFlywheel) {
         return run(() -> {
             double distance = distanceSupplier.getAsDouble();
             Double shootval = ShootingDistanceTables.shooter.get(distance);
@@ -97,7 +98,7 @@ public class Shooters extends SubsystemBase {
         hoodOffset -= 1.0;
     }
 
-    public double returnHoodOffset(){
+    public double returnHoodOffset() {
         return hoodOffset;
     }
 
@@ -111,31 +112,26 @@ public class Shooters extends SubsystemBase {
         shooterOffset -= 25;
     }
 
-    public double returnShooterOffset(){
+    public double returnShooterOffset() {
         return shooterOffset;
     }
 
     public Command useDistance2(
-            DoubleSupplier distanceSupplier,
+            double distance,
             BooleanSupplier enableHood,
-            BooleanSupplier enableFlywheel
-            ) {
+            BooleanSupplier enableFlywheel) {
         return run(() -> {
-            double distance = distanceSupplier.getAsDouble();
             Double shootval = ShootingDistanceTables.shooter.get(distance);
-            
+
             flywheels.set(enableFlywheel.getAsBoolean() ? shootval + shooterOffset : 2000);
             hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) + hoodOffset : 0);
         });
     }
-    
-
-   
 
     // public Command setPower(double shooterSpeed, double hoodAngle) {
-    //     return run(() -> {
-    //         flywheels.set(shooterSpeed);
-    //         hoods.setAngle(hoodAngle);
-    //     });
+    // return run(() -> {
+    // flywheels.set(shooterSpeed);
+    // hoods.setAngle(hoodAngle);
+    // });
     // }
 }

@@ -38,30 +38,50 @@ public class Agitator extends SubsystemBase {
      */
     private boolean statusDeploy = true; 
 
+    // public Command deploy() {
+    //     return runOnce(() -> {setPivotCurrent(10);})
+    //        .andThen(run(() -> setPivot(10)).withTimeout(1)).finallyDo(() -> pivotMotor.stopMotor());
+    // }
+
+    // public Command semiDeploy(){
+    //     return runOnce(() -> {setPivotCurrent(55); setPivotPGain(1); setPivotIGain(0.1);})
+    //        .andThen(run(() -> setPivot(2)));
+    // }
+
+    // public Command retract() {
+    //     return runOnce(() -> {setPivotCurrent(55); setPivotPGain(1); setPivotIGain(0.1);})
+    //        .andThen(run(() -> setPivot(0)));
+    // }
+
     public Command deploy() {
-        return runOnce(() -> setPivotCurrent(30))
-           .andThen(run(() -> setPivot(10)).withTimeout(1)).finallyDo(() -> pivotMotor.stopMotor());
+        return run(() -> setPivot(8)).withTimeout(0.5).finallyDo(() -> pivotMotor.stopMotor());
     }
 
     public Command semiDeploy(){
-        return runOnce(() -> setPivotCurrent(30))
-           .andThen(run(() -> setPivot(2)));
+        return run(() -> setPivot(4));
     }
 
     public Command retract() {
-        return runOnce(() -> setPivotCurrent(30))
-           .andThen(run(() -> setPivot(0)));
+        return run(() -> setPivot(1.5));
     }
     
 
     public Command agitate(Intake intake){
         return Commands.repeatingSequence(
-            semiDeploy().withTimeout(0.6),
-            deploy().withTimeout(0.3)).alongWith(intake.intake2()).finallyDo(() -> setPivot(10));
+            semiDeploy().withTimeout(0.5),
+            deploy().withTimeout(0.5)).alongWith(intake.intake2()).finallyDo(() -> setPivot(10));
     }
 
     public void setPivotCurrent(int value) {
         IntakeConfig.pivotConfig.smartCurrentLimit(value);
+    }
+
+    public void setPivotPGain(double val){
+        IntakeConfig.pivotConfig.closedLoop.p(val);
+    }
+
+    public void setPivotIGain(double val){
+        IntakeConfig.pivotConfig.closedLoop.i(val);
     }
 
     public Command setPivotEncoder(){
