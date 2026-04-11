@@ -11,7 +11,6 @@ public class Vision extends SubsystemBase {
     private Alliance m_alliance = Alliance.Red;
 
     private double getAllianceAngleOffset() {
-        // System.out.println("GETTING THE ALLIANCE ANGLE OFFSET ITS " + m_alliance + "!!!!");
         return m_alliance == Alliance.Blue ? 180 : 0;
     }
 

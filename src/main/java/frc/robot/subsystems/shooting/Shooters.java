@@ -7,18 +7,14 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.configuration.RobotConfiguration;
-import frc.robot.subsystems.intake.Intake;
 
 public class Shooters extends SubsystemBase {
     private static SparkMax setupSpark(int can, SparkMaxConfig config) {
@@ -58,8 +54,6 @@ public class Shooters extends SubsystemBase {
         public void setAngle(double degrees) {
             servo2.setAngle(90 - degrees); // left
             servo1.setAngle(90 - -degrees); // right
-            // servo1.set(0.5);
-            // servo2.set(0.5);
         }
     }
 
@@ -83,9 +77,13 @@ public class Shooters extends SubsystemBase {
         return run(() -> {
             double distance = distanceSupplier.getAsDouble();
             Double shootval = ShootingDistanceTables.shooter.get(distance);
-            flywheels.set(enableFlywheel.getAsBoolean() ? shootval : 2000);
-            hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) : 0);
+            flywheels.set(enableFlywheel.getAsBoolean() ? shootval + shooterOffset : 2000);
+            hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) + hoodOffset : 0);
         });
+    }
+
+    public Command useDistance(double distance) {
+        return useDistance(() -> distance, () -> true, () -> true);
     }
 
     private double hoodOffset = 0;
@@ -114,18 +112,6 @@ public class Shooters extends SubsystemBase {
 
     public double returnShooterOffset() {
         return shooterOffset;
-    }
-
-    public Command useDistance2(
-            double distance,
-            BooleanSupplier enableHood,
-            BooleanSupplier enableFlywheel) {
-        return run(() -> {
-            Double shootval = ShootingDistanceTables.shooter.get(distance);
-
-            flywheels.set(enableFlywheel.getAsBoolean() ? shootval + shooterOffset : 2000);
-            hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) + hoodOffset : 0);
-        });
     }
 
     // public Command setPower(double shooterSpeed, double hoodAngle) {

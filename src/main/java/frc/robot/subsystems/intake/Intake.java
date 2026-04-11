@@ -9,10 +9,8 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.configuration.RobotConfiguration.IntakeConfig;
-import frc.robot.subsystems.shooting.Shooters;
 import frc.robot.subsystems.feeding.Feeder;
 
 public class Intake extends SubsystemBase {
@@ -27,12 +25,12 @@ public class Intake extends SubsystemBase {
             IntakeConfig.intakerConfig);
     private final SparkClosedLoopController intakerController = intakerMotor.getClosedLoopController();
 
-    public Command intake2() {
+    public Command intake() {
         return runEnd(() -> intakerController.setSetpoint(IntakeConfig.INTAKER_SPEED, ControlType.kVelocity),
                 this::stop);
     }
 
-    public Command intake(Feeder feeder) {
+    public Command intakeWithIndexer(Feeder feeder) {
         return runEnd(() -> intakerController.setSetpoint(IntakeConfig.INTAKER_SPEED, ControlType.kVelocity),
                 this::stop).deadlineFor(feeder.outtakeIndexer());
     }
@@ -44,9 +42,5 @@ public class Intake extends SubsystemBase {
 
     private void stop() {
         intakerController.setSetpoint(0, ControlType.kVelocity);
-    }
-
-    public void temperatureRead(){
-        intakerMotor.getMotorTemperature();
     }
 }
