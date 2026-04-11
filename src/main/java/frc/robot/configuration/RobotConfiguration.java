@@ -24,7 +24,7 @@ public class RobotConfiguration {
     public static final class DriveConfig {
         public static final double maxSpeed = 5.5;
         public static final double maxSpeedLimited = 1;
-        public static final double maxAngularSpeed = Math.PI*2;
+        public static final double maxAngularSpeed = Math.PI * 2;
 
         private static final int drivingMotorPinionTeeth = 15;
         public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
@@ -75,7 +75,7 @@ public class RobotConfiguration {
 
                 drivingConfig
                         .idleMode(IdleMode.kBrake)
-                        .smartCurrentLimit(50); //40 to david, 50 mura
+                        .smartCurrentLimit(50); // 40 to david, 50 mura
                 drivingConfig.encoder
                         .positionConversionFactor(drivingFactor) // meters
                         .velocityConversionFactor(drivingFactor / 60.0); // meters per second
@@ -139,6 +139,47 @@ public class RobotConfiguration {
         }
     }
 
+    public static final class FeederConfig {
+        public static final int kickwheelCAN = 13;
+        public static final double kickwheelSpeed = 5500;
+        public static final SparkMaxConfig kickwheelConfig = new SparkMaxConfig();
+
+        public static final int indexerCAN = 4;
+        public static final int indexerVelocityIntake = -4000;
+        public static final int indexerVelocityOuttake = 500;
+        public static final SparkMaxConfig indexerConfig = new SparkMaxConfig();
+
+        public static final int conveyorCAN = 17;
+        public static final double conveyorSpeed = 1500;
+        public static final double conveyorSpeedShoot = 3000;
+        public static final SparkMaxConfig conveyorConfig = new SparkMaxConfig();
+
+        static {
+            conveyorConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.000005, 0.0000001, 0);
+            conveyorConfig.closedLoop.feedForward.kV(0.0021);
+            conveyorConfig.smartCurrentLimit(30); // 60
+            conveyorConfig.closedLoop.maxMotion.maxAcceleration(15000);
+            conveyorConfig.closedLoop.maxMotion.cruiseVelocity(5000);
+            conveyorConfig.inverted(true);
+
+            indexerConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.00001, 0, 0);
+            indexerConfig.closedLoop.feedForward.kV(0.0005);
+            indexerConfig.smartCurrentLimit(50);
+
+            kickwheelConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.00003, 0.0000001, 0)
+                    .iZone(200);
+            kickwheelConfig.closedLoop.feedForward.kV(0.002);
+            kickwheelConfig.smartCurrentLimit(40);
+            kickwheelConfig.inverted(true);
+        }
+    }
+
     public static final class AgitationConfig {
         public static final int agitator1CAN = 12;
         public static final int agitator2CAN = 2;
@@ -162,57 +203,30 @@ public class RobotConfiguration {
     public static final class ShooterConfig {
         public static final int flywheel1CAN = 9;
         public static final int flywheel2CAN = 11;
-        public static final int hood1Port = 1; 
-        public static final int hood2Port = 0; 
-        public static final int kickwheelCAN = 13;
-        public static final int indexerCAN = 4;
-
-        // public static final double INDEXER_SPEED = 2000;
-        // public static final double INDEXER_KICKOUT_SPEED = -500;
-        public static final double KICKWHEEL_SPEED = 5500;
+        public static final int hood1Port = 1;
+        public static final int hood2Port = 0;
 
         public static final SparkMaxConfig flywheelConfig = new SparkMaxConfig();
-        public static final SparkMaxConfig kickwheelConfig = new SparkMaxConfig();
-        public static final SparkMaxConfig indexerConfig = new SparkMaxConfig();
 
         static {
             flywheelConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.00005, 0.0000001, 0) //0.00004
+                    .pid(0.00005, 0.0000001, 0) // 0.00004
                     .iZone(50);
             flywheelConfig.closedLoop.feedForward.kV(0.00185);
             flywheelConfig.smartCurrentLimit(80);
             flywheelConfig.closedLoop.maxMotion.maxAcceleration(5000);
             flywheelConfig.closedLoop.maxMotion.cruiseVelocity(4000);
-
-            kickwheelConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.00003, 0.0000001, 0)
-                    .iZone(200);
-            kickwheelConfig.closedLoop.feedForward.kV(0.002);
-            kickwheelConfig.smartCurrentLimit(40);
-            kickwheelConfig.inverted(true);
-
-            indexerConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.00001, 0, 0);
-            indexerConfig.closedLoop.feedForward.kV(0.0005);
-            indexerConfig.smartCurrentLimit(50);
-
         }
     }
 
     public static final class IntakeConfig {
         public static final int intakerCAN = 15;
         public static final int pivotCAN = 16;
-        public static final int conveyorCAN = 17;
         public final static double INTAKER_SPEED = 6000;
-        public final static double CONVEYOR_SPEED_INTAKE = 1500;
-        public final static double CONVEYOR_SPEED_SHOOT = 3000; //4500
 
         public static final SparkMaxConfig intakerConfig = new SparkMaxConfig();
-        public static final SparkMaxConfig pivotConfig = new SparkMaxConfig(); //potentially "final"
-        public static final SparkMaxConfig conveyorConfig = new SparkMaxConfig();
+        public static final SparkMaxConfig pivotConfig = new SparkMaxConfig(); // potentially "final"
 
         static {
             intakerConfig.closedLoop
@@ -224,17 +238,8 @@ public class RobotConfiguration {
             pivotConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                     .pid(0.115, 0, 0);
             pivotConfig.inverted(true);
-            pivotConfig.smartCurrentLimit(26); //18
+            pivotConfig.smartCurrentLimit(26); // 18
             pivotConfig.idleMode(IdleMode.kCoast);
-
-            conveyorConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.000005, 0.0000001, 0);
-            conveyorConfig.closedLoop.feedForward.kV(0.0021);
-            conveyorConfig.smartCurrentLimit(30); //60
-            conveyorConfig.closedLoop.maxMotion.maxAcceleration(15000);
-            conveyorConfig.closedLoop.maxMotion.cruiseVelocity(5000);
-            conveyorConfig.inverted(true);
         }
     }
 

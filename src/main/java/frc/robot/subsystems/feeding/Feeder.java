@@ -12,8 +12,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
-import frc.robot.configuration.RobotConfiguration;
-import frc.robot.configuration.RobotConfiguration.IntakeConfig;
+import frc.robot.configuration.RobotConfiguration.FeederConfig;;
 
 public class Feeder extends SubsystemBase {
     private final SparkMax kickwheelMotor;
@@ -21,24 +20,22 @@ public class Feeder extends SubsystemBase {
     private final SparkFlex indexerMotor;
     private final SparkClosedLoopController indexerController;
 
-    private static final int INDEXER_VELOCITY_INTAKE = -4000; // 1000
-    private static final int INDEXER__VELOCITY_OUTAKE = 500;
     private final SparkMax conveyorMotor;
     private final SparkClosedLoopController conveyorController;
 
     public Feeder() {
-        kickwheelMotor = new SparkMax(RobotConfiguration.ShooterConfig.kickwheelCAN, MotorType.kBrushless);
-        kickwheelMotor.configure(RobotConfiguration.ShooterConfig.kickwheelConfig, ResetMode.kResetSafeParameters,
+        kickwheelMotor = new SparkMax(FeederConfig.kickwheelCAN, MotorType.kBrushless);
+        kickwheelMotor.configure(FeederConfig.kickwheelConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kNoPersistParameters);
         kickwheelController = kickwheelMotor.getClosedLoopController();
 
-        indexerMotor = new SparkFlex(RobotConfiguration.ShooterConfig.indexerCAN, MotorType.kBrushless);
-        indexerMotor.configure(RobotConfiguration.ShooterConfig.indexerConfig, ResetMode.kResetSafeParameters,
+        indexerMotor = new SparkFlex(FeederConfig.indexerCAN, MotorType.kBrushless);
+        indexerMotor.configure(FeederConfig.indexerConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kNoPersistParameters);
         indexerController = indexerMotor.getClosedLoopController();
 
-        conveyorMotor = new SparkMax(RobotConfiguration.IntakeConfig.conveyorCAN, MotorType.kBrushless);
-        conveyorMotor.configure(RobotConfiguration.IntakeConfig.conveyorConfig, ResetMode.kResetSafeParameters,
+        conveyorMotor = new SparkMax(FeederConfig.conveyorCAN, MotorType.kBrushless);
+        conveyorMotor.configure(FeederConfig.conveyorConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kNoPersistParameters);
         conveyorController = conveyorMotor.getClosedLoopController();
     }
@@ -51,7 +48,7 @@ public class Feeder extends SubsystemBase {
 
     private boolean kickwheelAtSpeed() {
         return Math.abs(kickwheelMotor.getEncoder().getVelocity())
-                + KICKWHEEL_AT_SPEED_THRESHOLD > RobotConfiguration.ShooterConfig.KICKWHEEL_SPEED;
+                + KICKWHEEL_AT_SPEED_THRESHOLD > FeederConfig.kickwheelSpeed;
     }
 
     private void setKickwheel(double velocity) {
@@ -59,7 +56,7 @@ public class Feeder extends SubsystemBase {
     }
 
     public Command outtakeIndexer() {
-        return runEnd(() -> setIndexerVelocity(INDEXER__VELOCITY_OUTAKE), () -> setIndexerVelocity(0));
+        return runEnd(() -> setIndexerVelocity(FeederConfig.indexerVelocityOuttake), () -> setIndexerVelocity(0));
     }
 
     private void setConveyor(double speed) {
@@ -67,12 +64,12 @@ public class Feeder extends SubsystemBase {
     }
 
     public Command feed() {
-        return run(() -> setKickwheel(RobotConfiguration.ShooterConfig.KICKWHEEL_SPEED))
+        return run(() -> setKickwheel(FeederConfig.kickwheelSpeed))
                 .alongWith(
                         new WaitUntilCommand(this::kickwheelAtSpeed).andThen(
                                 new RunCommand(() -> {
-                                    setIndexerVelocity(INDEXER_VELOCITY_INTAKE);
-                                    setConveyor(IntakeConfig.CONVEYOR_SPEED_SHOOT);
+                                    setIndexerVelocity(FeederConfig.indexerVelocityIntake);
+                                    setConveyor(FeederConfig.conveyorSpeedShoot);
                                 })))
                 .finallyDo(() -> {
                     setIndexerVelocity(0);
@@ -83,7 +80,7 @@ public class Feeder extends SubsystemBase {
 
     public Command pullIn() {
         return runEnd(() -> {
-            setConveyor(IntakeConfig.CONVEYOR_SPEED_INTAKE);
+            setConveyor(FeederConfig.conveyorSpeed);
         }, () -> {
             setConveyor(0);
         }).deadlineFor(outtakeIndexer());
@@ -91,8 +88,8 @@ public class Feeder extends SubsystemBase {
 
     public Command pushOut() {
         return runEnd(() -> {
-            setConveyor(-IntakeConfig.CONVEYOR_SPEED_INTAKE);
-            setIndexerVelocity(INDEXER__VELOCITY_OUTAKE);
+            setConveyor(-FeederConfig.conveyorSpeed);
+            setIndexerVelocity(FeederConfig.indexerVelocityOuttake);
         }, () -> {
             setConveyor(0);
             setIndexerVelocity(0);
