@@ -1,9 +1,9 @@
 ========= controls ===========
  button =========== command
 
-right trigger ..... feed shooter (right bumper CANCELS)
-right bumper ...... agitate
+right trigger ..... feed shooter and agitate
 left trigger ...... intake
+left bumper ....... outtake
 X ................. autotarget
 A ................. shoot distance override (set distance to low)
 options ........... reset imu
