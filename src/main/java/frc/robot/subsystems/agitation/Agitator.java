@@ -11,6 +11,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.configuration.RobotConfiguration.AgitationConfig;
 import frc.robot.configuration.RobotConfiguration.IntakeConfig;
 import frc.robot.subsystems.intake.Intake;
 
@@ -26,28 +27,67 @@ public class Agitator extends SubsystemBase {
             IntakeConfig.pivotConfig);
     private final SparkClosedLoopController pivotController = pivotMotor.getClosedLoopController();
 
+    private final SparkMax agitatorLeftMotor = setupSpark(AgitationConfig.agitatorLeftCAN,
+            AgitationConfig.agitatorConfig);
+    private final SparkClosedLoopController agitatorLeftController = agitatorLeftMotor.getClosedLoopController();
+    private final SparkMax agitatorRightMotor = setupSpark(AgitationConfig.agitatorRightCAN,
+            AgitationConfig.agitatorConfig);
+    private final SparkClosedLoopController agitatorRightController = agitatorRightMotor.getClosedLoopController();
+
     public void setPivot(double value) {
         pivotController.setSetpoint(value, ControlType.kPosition);
     }
 
+    private void pivotDown() {
+        setPivot(8);
+    }
+
+    private void pivotSemi() {
+        setPivot(4);
+    }
+
+    private void pivotUp() {
+        setPivot(1.5);
+    }
+
+    private void pivotDisable() {
+        pivotMotor.stopMotor();
+    }
+
     public Command deploy() {
-        return run(() -> setPivot(8)).withTimeout(0.5).finallyDo(() -> pivotMotor.stopMotor());
+        return run(this::pivotDown).withTimeout(0.5).finallyDo(this::pivotDisable);
     }
 
     public Command semiDeploy() {
-        return run(() -> setPivot(4));
+        return run(this::pivotSemi);
     }
 
     public Command retract() {
-        return run(() -> setPivot(1.5));
+        return run(this::pivotUp);
+    }
+
+    private void agitatorsUp() {
+        agitatorLeftController.setSetpoint(1.1, ControlType.kPosition);
+        agitatorRightController.setSetpoint(-1.1, ControlType.kPosition);
+    }
+
+    private void agitatorsDown() {
+        agitatorLeftController.setSetpoint(0, ControlType.kPosition);
+        agitatorRightController.setSetpoint(0, ControlType.kPosition);
     }
 
     public Command agitate(Intake intake) {
-        return Commands.repeatingSequence(
-                semiDeploy().withTimeout(0.5),
-                deploy().withTimeout(0.5)).alongWith(intake.intake()).finallyDo(() -> setPivot(10));
+        return Commands.parallel(
+                Commands.repeatingSequence(
+                        Commands.run(() -> agitatorsUp()).withTimeout(AgitationConfig.repeatIntervalFlippers),
+                        Commands.run(() -> agitatorsDown()).withTimeout(AgitationConfig.repeatIntervalFlippers)),
+                Commands.repeatingSequence(
+                        Commands.run(() -> pivotSemi()).withTimeout(AgitationConfig.repeatIntervalPivot),
+                        Commands.run(() -> pivotDown()).withTimeout(AgitationConfig.repeatIntervalPivot)))
+                .finallyDo(this::agitatorsUp);
     }
 
+    // do NOT remove this
     public Command setPivotEncoder() {
         return runOnce(() -> {
             System.out.println("balls");

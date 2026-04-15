@@ -181,22 +181,21 @@ public class RobotConfiguration {
     }
 
     public static final class AgitationConfig {
-        public static final int agitator1CAN = 12;
-        public static final int agitator2CAN = 2;
+        public static final int agitatorLeftCAN = 12;
+        public static final int agitatorRightCAN = 2;
 
-        public static final double inactivePosition = 0;
-        public static final double activePosition = 1;
-        public static final double repeatInterval = 0.5;
+        public static final double repeatIntervalPivot = 0.5;
+        public static final double repeatIntervalFlippers = repeatIntervalPivot / 2;
 
         public static final SparkMaxConfig agitatorConfig = new SparkMaxConfig();
 
         static {
             agitatorConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.132, 0.00001, 0);
+                    .pid(0.3, 0, 0);
             agitatorConfig.closedLoop.iMaxAccum(0.01);
             agitatorConfig.closedLoop.feedForward.kV(0.01);
-            agitatorConfig.smartCurrentLimit(5); // <---determine this
+            agitatorConfig.smartCurrentLimit(5);
         }
     }
 
@@ -238,7 +237,7 @@ public class RobotConfiguration {
             pivotConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                     .pid(0.115, 0, 0);
             pivotConfig.inverted(true);
-            pivotConfig.smartCurrentLimit(26); // 18
+            pivotConfig.smartCurrentLimit(26);
             pivotConfig.idleMode(IdleMode.kCoast);
         }
     }
