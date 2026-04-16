@@ -135,11 +135,9 @@ public class RobotContainer {
         m_controller.leftTrigger()
                 .whileTrue(m_intake.intakeWithIndexer(m_feeder));
 
-        // outtake for 0.5 seconds then feed+agitate
-        m_controller.rightTrigger().whileTrue(
-                m_feeder.pushOut().withTimeout(0.5)
-                        .andThen(m_feeder.feed()
-                                .alongWith(m_agitator.agitate(m_intake))));
+        m_controller.rightTrigger().whileTrue(Commands.parallel(
+                m_agitator.agitate(m_intake),
+                m_feeder.pushOut().withTimeout(0.5).andThen(m_feeder.feed())));
 
         // todo review
         m_controller.x().and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftX(), 0.1)) == 0)

@@ -67,8 +67,8 @@ public class Agitator extends SubsystemBase {
     }
 
     private void agitatorsUp() {
-        agitatorLeftController.setSetpoint(1.1, ControlType.kPosition);
-        agitatorRightController.setSetpoint(-1.1, ControlType.kPosition);
+        agitatorLeftController.setSetpoint(1, ControlType.kPosition);
+        agitatorRightController.setSetpoint(-1, ControlType.kPosition);
     }
 
     private void agitatorsDown() {
@@ -84,7 +84,7 @@ public class Agitator extends SubsystemBase {
                 Commands.repeatingSequence(
                         Commands.run(() -> pivotSemi()).withTimeout(AgitationConfig.repeatIntervalPivot),
                         Commands.run(() -> pivotDown()).withTimeout(AgitationConfig.repeatIntervalPivot)))
-                .finallyDo(this::agitatorsUp);
+                .finallyDo(this::agitatorsDown);
     }
 
     // do NOT remove this
