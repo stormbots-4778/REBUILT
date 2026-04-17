@@ -159,7 +159,7 @@ public class RobotConfiguration {
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                     .pid(0.000005, 0.0000001, 0);
             conveyorConfig.closedLoop.feedForward.kV(0.0021);
-            conveyorConfig.smartCurrentLimit(30); // 60
+            conveyorConfig.smartCurrentLimit(10);
             conveyorConfig.closedLoop.maxMotion.maxAcceleration(15000);
             conveyorConfig.closedLoop.maxMotion.cruiseVelocity(5000);
             conveyorConfig.inverted(true);
@@ -195,7 +195,7 @@ public class RobotConfiguration {
                     .pid(0.3, 0, 0);
             agitatorConfig.closedLoop.iMaxAccum(0.01);
             agitatorConfig.closedLoop.feedForward.kV(0.01);
-            agitatorConfig.smartCurrentLimit(5);
+            agitatorConfig.smartCurrentLimit(2);
         }
     }
 

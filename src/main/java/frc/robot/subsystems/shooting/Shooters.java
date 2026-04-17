@@ -76,7 +76,7 @@ public class Shooters extends SubsystemBase {
             BooleanSupplier enableFlywheel) {
         return run(() -> {
             double distance = distanceSupplier.getAsDouble();
-            Double shootval = ShootingDistanceTables.shooter.get(distance);
+            double shootval = ShootingDistanceTables.shooter.get(distance);
             flywheels.set(enableFlywheel.getAsBoolean() ? shootval + shooterOffset : 2000);
             hoods.setAngle(enableHood.getAsBoolean() ? ShootingDistanceTables.hood.get(distance) + hoodOffset : 0);
         });
