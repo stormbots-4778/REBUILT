@@ -39,7 +39,7 @@ public class RobotContainer implements RunnableRobot {
 
     private static final boolean USE_FIELD_RELATIVE = true;
     // shoot distance override
-    private static final double DISTANCE_OVERRIDE = 1.5;
+    private static final double SHOOT_DISTANCE_OVERRIDE_DISTANCE = 1.5;
 
     private Alliance m_alliance;
     private Translation2d m_goalPosition;
@@ -91,7 +91,7 @@ public class RobotContainer implements RunnableRobot {
      */
     private double shooterShootDistance() {
         if (m_controller.a().getAsBoolean()) {
-            return DISTANCE_OVERRIDE;
+            return SHOOT_DISTANCE_OVERRIDE_DISTANCE;
         }
         return distanceFromCoordinate(m_aimAtGoalPosition);
     }
