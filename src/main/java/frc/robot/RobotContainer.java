@@ -26,7 +26,7 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooting.Shooters;
 import frc.robot.subsystems.vision.Vision;
 
-public class RobotContainer {
+public class RobotContainer implements RunnableRobot {
     private final CommandXboxController m_controller = new CommandXboxController(0);
     private final Drivetrain m_drivetrain = new Drivetrain();
     private final Vision m_vision = new Vision();

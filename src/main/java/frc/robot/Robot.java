@@ -9,12 +9,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends TimedRobot {
-    private RobotContainer m_robotContainer;
+    private RunnableRobot m_robo;
     private Command m_autonomousCommand;
 
     @Override
     public void robotInit() {
-        m_robotContainer = new RobotContainer();
+        m_robo = new RobotContainer();
     }
 
     @Override
@@ -24,7 +24,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+        m_autonomousCommand = m_robo.getAutonomousCommand();
         if (m_autonomousCommand == null) {
             System.out.println("No autonomous command selected! Can't start!");
             return;
