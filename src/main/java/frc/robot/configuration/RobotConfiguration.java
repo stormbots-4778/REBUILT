@@ -196,7 +196,7 @@ public class RobotConfiguration {
                     .pid(0.3, 0, 0);
             agitatorConfig.closedLoop.iMaxAccum(0.01);
             agitatorConfig.closedLoop.feedForward.kV(0.01);
-            agitatorConfig.smartCurrentLimit(2);
+            agitatorConfig.smartCurrentLimit(5);
         }
     }
 

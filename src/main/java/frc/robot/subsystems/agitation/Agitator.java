@@ -84,7 +84,10 @@ public class Agitator extends SubsystemBase {
                 Commands.repeatingSequence(
                         Commands.run(() -> pivotSemi()).withTimeout(AgitationConfig.repeatIntervalPivot),
                         Commands.run(() -> pivotDown()).withTimeout(AgitationConfig.repeatIntervalPivot)))
-                .finallyDo(this::agitatorsDown);
+                .finallyDo(() -> {
+                    agitatorsDown();
+                    pivotDown();
+                });
     }
 
     // do NOT remove this
