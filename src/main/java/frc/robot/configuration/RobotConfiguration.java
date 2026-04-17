@@ -22,8 +22,8 @@ public class RobotConfiguration {
     }
 
     public static final class DriveConfig {
-        public static final double maxSpeed = 5.5;
-        public static final double maxSpeedLimited = 1;
+        public static final double maxSpeed = 1;
+        public static final double maxSpeedLimited = 0.25; // while shooting
         public static final double maxAngularSpeed = Math.PI * 2;
 
         private static final int drivingMotorPinionTeeth = 15;
@@ -81,8 +81,9 @@ public class RobotConfiguration {
                         .velocityConversionFactor(drivingFactor / 60.0); // meters per second
                 drivingConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        .pid(0.08, 0, 0)
+                        .pid(0.02, 0, 0)
                         .outputRange(-1, 1).feedForward.kV(1.98).kA(0.25);
+                drivingConfig.closedLoop.maxMotion.maxAcceleration(5);
 
                 turningConfig
                         .idleMode(IdleMode.kBrake)
