@@ -160,7 +160,7 @@ public class RobotConfiguration {
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                     .pid(0.000005, 0.0000001, 0);
             conveyorConfig.closedLoop.feedForward.kV(0.0021);
-            conveyorConfig.smartCurrentLimit(10);
+            conveyorConfig.smartCurrentLimit(30);
             conveyorConfig.closedLoop.maxMotion.maxAcceleration(15000);
             conveyorConfig.closedLoop.maxMotion.cruiseVelocity(5000);
             conveyorConfig.inverted(true);
