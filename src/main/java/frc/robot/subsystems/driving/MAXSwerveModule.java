@@ -105,7 +105,7 @@ public class MAXSwerveModule {
 
         // Command driving and turning SPARKS towards their respective setpoints.
         m_drivingClosedLoopController.setSetpoint(correctedDesiredState.speedMetersPerSecond,
-                ControlType.kMAXMotionVelocityControl);
+                ControlType.kVelocity);
         m_turningClosedLoopController.setSetpoint(correctedDesiredState.angle.getRadians(),
                 ControlType.kPosition);
 

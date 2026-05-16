@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.configuration.FieldConfiguration;
 import frc.robot.configuration.RobotConfiguration.DriveConfig;
-import frc.robot.subsystems.agitation.Agitator;
 import frc.robot.subsystems.driving.Drivetrain;
 import frc.robot.subsystems.feeding.Feeder;
 import frc.robot.subsystems.intake.Intake;
@@ -28,18 +27,18 @@ import frc.robot.subsystems.vision.Vision;
 
 public class RobotContainer implements RunnableRobot {
     private final CommandXboxController m_controller = new CommandXboxController(0);
+
     private final Drivetrain m_drivetrain = new Drivetrain();
     private final Vision m_vision = new Vision();
     private final Shooters m_shooter = new Shooters();
     private final Intake m_intake = new Intake();
     private final Feeder m_feeder = new Feeder();
-    private final Agitator m_agitator = new Agitator();
 
     private final SendableChooser<Command> autoChooser;
 
     private static final boolean USE_FIELD_RELATIVE = true;
-    // shoot distance override
-    private static final double SHOOT_DISTANCE_OVERRIDE_DISTANCE = 1.5;
+    private static final double SHOOT_DISTANCE_OVERRIDE_DISTANCE = 1.6;
+    private static final double TURRET_HEADING = Math.PI; // offset autoaiming
 
     private Alliance m_alliance;
     private Translation2d m_goalPosition;
@@ -97,15 +96,16 @@ public class RobotContainer implements RunnableRobot {
     }
 
     private void configureNamedCommands() {
-        NamedCommands.registerCommand("Intake", m_intake.intakeWithIndexer(m_feeder));
-        NamedCommands.registerCommand("Deploy Intaker", m_agitator.deploy().withTimeout(0.25));
+        NamedCommands.registerCommand("Deploy Intaker", m_intake.deploy());
+        NamedCommands.registerCommand("Intake", m_intake.intake());
         NamedCommands.registerCommand("Reset Heading", resetHeading());
 
         NamedCommands.registerCommand("Shoot Routine", Commands.deadline(
                 Commands.sequence(
                         Commands.waitSeconds(0.25),
-                        m_feeder.feed().withTimeout(10).alongWith(m_agitator.agitate(m_intake))),
-                m_shooter.useDistance(this::shooterShootDistance, () -> true, () -> true)));
+                        m_feeder.feed().withTimeout(10)),
+                m_shooter.useDistance(this::shooterShootDistance, () -> true, () -> true),
+                m_intake.agitate()));
 
         /*
          * Below are the emergency shoot routines for blue right and left
@@ -114,32 +114,32 @@ public class RobotContainer implements RunnableRobot {
         NamedCommands.registerCommand("Shoot Routine BLUE RIGHT", Commands.deadline(
                 Commands.sequence(
                         Commands.waitSeconds(0.25),
-                        m_feeder.feed().withTimeout(10).alongWith(m_agitator.agitate(m_intake))),
+                        m_feeder.feed().withTimeout(10)),
                 m_shooter.useDistance(2.3))); // put manual distance for RIGHT SIDE AUTO. i
                                               // think this value is ok
 
         NamedCommands.registerCommand("Shoot Routine BLUE LEFT", Commands.deadline(
                 Commands.sequence(
                         Commands.waitSeconds(0.25),
-                        m_feeder.feed().withTimeout(10).alongWith(m_agitator.agitate(m_intake))),
+                        m_feeder.feed().withTimeout(10)),
                 m_shooter.useDistance(2.3))); // put manual distance for LEFT SIDE AUTO
 
         NamedCommands.registerCommand("DEPOT Shoot Routine", Commands.deadline(
                 Commands.sequence(
                         Commands.waitSeconds(0.25),
-                        m_feeder.feed().withTimeout(6.7).alongWith(m_agitator.agitate(m_intake))),
+                        m_feeder.feed().withTimeout(6.7)),
                 m_shooter.useDistance(this::shooterShootDistance, () -> true, () -> true)));
     }
 
     private void configureButtonBindings() {
         m_controller.leftTrigger()
-                .whileTrue(m_intake.intakeWithIndexer(m_feeder));
+                .whileTrue(m_intake.intake());
 
-        m_controller.rightTrigger().whileTrue(Commands.parallel(
-                m_agitator.agitate(m_intake),
-                m_feeder.pushOut().withTimeout(0.5).andThen(m_feeder.feed())));
+        m_controller.a().whileTrue(m_shooter.useDistance(SHOOT_DISTANCE_OVERRIDE_DISTANCE));
 
-        // todo review
+        m_controller.rightTrigger().whileTrue(m_feeder.feed().alongWith(m_intake.agitate()));
+        m_controller.rightBumper().whileTrue(m_intake.agitate());
+
         m_controller.x().and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftX(), 0.1)) == 0)
                 .and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftY(), 0.1)) == 0)
                 .debounce(2)
@@ -150,38 +150,32 @@ public class RobotContainer implements RunnableRobot {
 
         m_controller.back().onTrue(resetHeading());
 
-        m_controller.b().whileTrue(m_agitator.deploy());
-        m_controller.y().whileTrue(m_agitator.retract());
-
         m_controller.leftStick().onTrue(new InstantCommand(
                 () -> setAlliance(Alliance.Blue)));
         m_controller.rightStick().onTrue(new InstantCommand(
                 () -> setAlliance(Alliance.Red)));
 
-        m_controller.povUp().onTrue(Commands.runOnce(() -> m_shooter.incrementHoodOffset()));
-        m_controller.povDown().onTrue(Commands.runOnce(() -> m_shooter.decrementHoodOffset()));
+        m_controller.b().onTrue(m_intake.deploy());
+        m_controller.y().onTrue(m_intake.retract());
 
-        m_controller.povRight().onTrue(Commands.runOnce(() -> m_shooter.incrementShooterOffset()));
-        m_controller.povLeft().onTrue(Commands.runOnce(() -> m_shooter.decrementShooterOffset()));
+        m_controller.povUp().onTrue(new InstantCommand(() -> m_shooter.hoodOffset += 0.1));
+        m_controller.povDown().onTrue(new InstantCommand(() -> m_shooter.hoodOffset -= 0.1));
+        m_controller.povRight().onTrue(new InstantCommand(() -> m_shooter.shootSpeedOffset += 50));
+        m_controller.povLeft().onTrue(new InstantCommand(() -> m_shooter.shootSpeedOffset -= 50));
     }
 
     /**
      * I like to move it move it
      */
     private void drive() {
-        // System.out.println(shooterShootDistance());
-        // System.out.println(m_shooter.returnHoodOffset());
-        // System.out.println(m_shooter.returnShooterOffset());
-        // System.out.println(DriverStation.getAlliance());
-
         setAlliance(DriverStation.getAlliance().orElse(Alliance.Red));
         m_aimAtGoalPosition = autoaimTarget();
         m_aimAtGoalPositionPublisher.set(m_aimAtGoalPosition);
 
         final var xSpeed = MathUtil.applyDeadband(m_controller.getLeftY(), 0.02)
-                * DriveConfig.maxSpeed;
+                * DriveConfig.maxDrivetrainSpeed;
         final var ySpeed = MathUtil.applyDeadband(m_controller.getLeftX(), 0.02)
-                * DriveConfig.maxSpeed;
+                * DriveConfig.maxDrivetrainSpeed;
 
         boolean shouldAutoTarget = m_controller.x().getAsBoolean();
         double rotation = shouldAutoTarget ? autotargetRotation() : driverRotation();
@@ -193,15 +187,14 @@ public class RobotContainer implements RunnableRobot {
      * How much do y'all want me to turn by?
      */
     private double driverRotation() {
-        return -MathUtil.applyDeadband(m_controller.getRightX(), 0.02)
-                * DriveConfig.maxAngularSpeed;
+        return -MathUtil.applyDeadband(m_controller.getRightX(), 0.02);
     }
 
     /**
      * How much does autotargeting want me to turn by?
      */
     private double autotargetRotation() {
-        return rotationToCoordinate(m_aimAtGoalPosition) * 2;
+        return rotationToCoordinate(m_aimAtGoalPosition) / DriveConfig.maxAngularSpeed * 5;
     }
 
     /**
@@ -232,7 +225,7 @@ public class RobotContainer implements RunnableRobot {
         final var delta = fieldCoord.minus(m_drivetrain.getPose().getTranslation());
         var targetAngle = Math.atan2(delta.getY(), delta.getX());
         var headingOffset = m_alliance == Alliance.Blue ? 180 : 0;
-        var robotHeading = Math.toRadians(m_drivetrain.getHeadingDegrees() + headingOffset);
+        var robotHeading = Math.toRadians(m_drivetrain.getHeadingDegrees() + headingOffset) + TURRET_HEADING;
         return MathUtil.angleModulus(targetAngle - robotHeading);
     }
 

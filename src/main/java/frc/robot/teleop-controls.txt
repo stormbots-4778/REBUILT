@@ -1,7 +1,7 @@
 ========= controls ===========
- button =========== command
 
-right trigger ..... feed shooter and agitate
+right trigger ..... feed shooter
+right bumper ...... agitate
 left trigger ...... intake
 left bumper ....... outtake
 X ................. autotarget
@@ -11,3 +11,8 @@ B ................. deploy intake
 Y ................. retract intake
 
 hood will be down UNLESS feeding or autotargeting or shoot distance override (X or right trigger or A)
+
+up ................ hood offset up
+down .............. hood offset down
+right ............. shoot offset up
+left .............. shoot offset down

@@ -23,8 +23,9 @@ public class Vision extends SubsystemBase {
     }
 
     private void useLL(String name, Drivetrain drive, boolean provideGyro) {
-        LimelightHelpers.PoseEstimate llMeasurement = LimelightHelpers
-                .getBotPoseEstimate_wpiBlue_MegaTag2(name);
+        LimelightHelpers.PoseEstimate llMeasurement = m_alliance == Alliance.Blue
+                ? LimelightHelpers.getBotPoseEstimate_wpiBlue(name)
+                : LimelightHelpers.getBotPoseEstimate_wpiRed(name);
         if (provideGyro)
             LimelightHelpers.SetRobotOrientation(name, drive.getHeadingDegrees() + getAllianceAngleOffset(), 0, 0, 0, 0,
                     0);

@@ -19,27 +19,11 @@ public class ShootingDistanceTables {
         }
     }
 
-
-    /*
-     * .add(1.3, 2850, -20)
-            .add(2.4, 3450, 37)
-            .add(3.7, 3750, 40)
-            .add(4.5, 3925, 46);
-     */
     private static final Table tables = new Table()
-            // .add(1.3, 2800, -20)
-            // .add(2.4, 3200, 46)
-            // .add(2.8, 3300, 46)
-            // .add(3.2, 3450, 38)
-            // .add(3.7, 3600, 40)
-            // .add(4.5, 3875, 46);
-            .add(1.3, 3100, 15)
-            .add(2.4, 3500, 37)
-            .add(2.8, 3600, 46)
-            .add(3.2, 3750, 38)
-            .add(3.7, 3975, 40)
-            .add(3.9, 4075, 42)
-            .add(4.5, 4250, 46);
+            .add(1,   1250, 0.4)
+            .add(1.6, 1350, 0.4)
+            .add(2.4, 1550, 0.2)
+            .add(3.6, 1800, 0.2);
 
     public static final InterpolatingDoubleTreeMap shooter = tables.sMap;
     public static final InterpolatingDoubleTreeMap hood = tables.hMap;

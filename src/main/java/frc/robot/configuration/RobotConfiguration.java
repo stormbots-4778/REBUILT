@@ -22,9 +22,10 @@ public class RobotConfiguration {
     }
 
     public static final class DriveConfig {
-        public static final double maxSpeed = 1;
+        public static final double maxTeleopSpeed = 6;
+        public static final double maxDrivetrainSpeed = 7;
         public static final double maxSpeedLimited = 0.25; // while shooting
-        public static final double maxAngularSpeed = Math.PI * 2;
+        public static final double maxAngularSpeed = Math.PI * 4;
 
         private static final int drivingMotorPinionTeeth = 15;
         public static final double drivingMotorReduction = (45.0 * 20) / (drivingMotorPinionTeeth * 15);
@@ -52,8 +53,8 @@ public class RobotConfiguration {
             // CANs
             public static final int frontLeftDriveCAN = 1;
             public static final int frontRightDriveCAN = 3;
-            public static final int backLeftDriveCAN = 5;
-            public static final int backRightDriveCAN = 7;
+            public static final int backLeftDriveCAN = 7;
+            public static final int backRightDriveCAN = 5;
 
             public static final int frontLeftTurnCAN = 10;
             public static final int frontRightTurnCAN = 14;
@@ -83,7 +84,6 @@ public class RobotConfiguration {
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         .pid(0.02, 0, 0)
                         .outputRange(-1, 1).feedForward.kV(1.98).kA(0.25);
-                drivingConfig.closedLoop.maxMotion.maxAcceleration(5);
 
                 turningConfig
                         .idleMode(IdleMode.kBrake)
@@ -141,14 +141,12 @@ public class RobotConfiguration {
     }
 
     public static final class FeederConfig {
-        public static final int kickwheelCAN = 13;
-        public static final double kickwheelSpeed = 5500;
-        public static final SparkMaxConfig kickwheelConfig = new SparkMaxConfig();
-
-        public static final int indexerCAN = 4;
-        public static final int indexerVelocityIntake = -4000;
-        public static final int indexerVelocityOuttake = 500;
-        public static final SparkMaxConfig indexerConfig = new SparkMaxConfig();
+        public static final double feederSpeedSlow = -1000;
+        public static final double feederSpeed = 3500;
+        public static final int feedMotorLeftCAN = 30;
+        public static final SparkMaxConfig feedMotorLeftConfig = new SparkMaxConfig();
+        public static final int feedMotorRightCAN = 31;
+        public static final SparkMaxConfig feedMotorRightConfig = new SparkMaxConfig();
 
         public static final int conveyorCAN = 17;
         public static final double conveyorSpeed = 1500;
@@ -160,63 +158,69 @@ public class RobotConfiguration {
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                     .pid(0.000005, 0.0000001, 0);
             conveyorConfig.closedLoop.feedForward.kV(0.0021);
-            conveyorConfig.smartCurrentLimit(30);
+            conveyorConfig.smartCurrentLimit(45);
             conveyorConfig.closedLoop.maxMotion.maxAcceleration(15000);
             conveyorConfig.closedLoop.maxMotion.cruiseVelocity(5000);
             conveyorConfig.inverted(true);
 
-            indexerConfig.closedLoop
+            feedMotorLeftConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.00001, 0, 0);
-            indexerConfig.closedLoop.feedForward.kV(0.0005);
-            indexerConfig.smartCurrentLimit(50);
-
-            kickwheelConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.00003, 0.0000001, 0)
+                    .pid(0.00003, 0, 0.0005)
                     .iZone(200);
-            kickwheelConfig.closedLoop.feedForward.kV(0.002);
-            kickwheelConfig.smartCurrentLimit(40);
-            kickwheelConfig.inverted(true);
-        }
-    }
+            feedMotorLeftConfig.closedLoop.feedForward.kV(0.002225);
+            feedMotorLeftConfig.smartCurrentLimit(60);
 
-    public static final class AgitationConfig {
-        public static final int agitatorLeftCAN = 12;
-        public static final int agitatorRightCAN = 2;
-
-        public static final double repeatIntervalPivot = 0.5;
-        public static final double repeatIntervalFlippers = repeatIntervalPivot / 2;
-
-        public static final SparkMaxConfig agitatorConfig = new SparkMaxConfig();
-
-        static {
-            agitatorConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.3, 0, 0);
-            agitatorConfig.closedLoop.iMaxAccum(0.01);
-            agitatorConfig.closedLoop.feedForward.kV(0.01);
-            agitatorConfig.smartCurrentLimit(5);
+            feedMotorRightConfig.follow(feedMotorLeftCAN, true);
         }
     }
 
     public static final class ShooterConfig {
-        public static final int flywheel1CAN = 9;
-        public static final int flywheel2CAN = 11;
-        public static final int hood1Port = 1;
-        public static final int hood2Port = 0;
+        public static final double SHOOTER_IDLE_SPEED = 800;
 
-        public static final SparkMaxConfig flywheelConfig = new SparkMaxConfig();
+        public static final int shooterLeft1CAN = 40;
+        public static final SparkMaxConfig shooterLeft1Config = new SparkMaxConfig();
+        public static final int shooterLeft2CAN = 41;
+        public static final SparkMaxConfig shooterLeft2Config = new SparkMaxConfig();
+        public static final int shooterRight1CAN = 50;
+        public static final SparkMaxConfig shooterRight1Config = new SparkMaxConfig();
+        public static final int shooterRight2CAN = 51;
+        public static final SparkMaxConfig shooterRight2Config = new SparkMaxConfig();
+
+        private static final int shooterCurrentLimit = 60;
+
+        public static final int hoodLeftCAN = 20;
+        public static final SparkMaxConfig hoodLeftConfig = new SparkMaxConfig();
+        public static final int hoodRightCAN = 21;
+        public static final SparkMaxConfig hoodRightConfig = new SparkMaxConfig();
 
         static {
-            flywheelConfig.closedLoop
+            shooterLeft1Config.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.00005, 0.0000001, 0) // 0.00004
-                    .iZone(50);
-            flywheelConfig.closedLoop.feedForward.kV(0.00185);
-            flywheelConfig.smartCurrentLimit(80);
-            flywheelConfig.closedLoop.maxMotion.maxAcceleration(5000);
-            flywheelConfig.closedLoop.maxMotion.cruiseVelocity(4000);
+                    .pid(0.0001, 0.0000001, 0.000025)
+                    .iZone(50)
+                    .iMaxAccum(0.2);
+            shooterLeft1Config.closedLoop.feedForward.kV(0.0025);
+            shooterLeft1Config.smartCurrentLimit(shooterCurrentLimit);
+            shooterLeft1Config.closedLoop.maxMotion.maxAcceleration(20_000);
+            shooterLeft1Config.closedLoop.maxMotion.cruiseVelocity(8000);
+            shooterLeft1Config.inverted(true);
+            shooterLeft1Config.encoder
+                    .quadratureAverageDepth(8)
+                    .quadratureMeasurementPeriod(4);
+
+            shooterLeft2Config.apply(shooterLeft1Config);
+
+            shooterRight1Config.apply(shooterLeft1Config);
+            shooterRight1Config.inverted(false);  // left is inverted, reverse here
+            shooterRight2Config.apply(shooterRight1Config);
+
+            hoodLeftConfig.closedLoop
+                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                    .pid(0.1, 0.0005, 0)
+                    .iZone(0.25);
+            hoodLeftConfig.closedLoop.feedForward.kG(0.17);
+            hoodLeftConfig.smartCurrentLimit(10);
+            hoodRightConfig.follow(hoodLeftCAN, true);
         }
     }
 

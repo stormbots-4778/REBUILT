@@ -92,8 +92,8 @@ public class Drivetrain extends SubsystemBase {
                 this::getChassisSpeeds,
                 this::setChassisSpeeds,
                 new PPHolonomicDriveController(
-                        new PIDConstants(100, 0, 2),// 150, 0, 0.01
-                        new PIDConstants(37, 0.15, 0)), //100, 1, 0
+                        new PIDConstants(12, 0, 0),
+                        new PIDConstants(6, 0, 0)),
                 config,
                 () -> {
                     var alliance = DriverStation.getAlliance();
@@ -199,16 +199,17 @@ public class Drivetrain extends SubsystemBase {
      *                      field.
      */
     public void drive(double xSpeed, double ySpeed, double rot, boolean limitSpeed, boolean fieldRelative) {
-        double maxSpeed = limitSpeed ? DriveConfig.maxSpeedLimited : DriveConfig.maxSpeed;
+        double maxSpeed = limitSpeed ? DriveConfig.maxSpeedLimited : DriveConfig.maxTeleopSpeed;
 
         // Convert the commanded speeds into the correct units for my drivetrain.
         double xSpeedDelivered = xSpeed * maxSpeed;
         double ySpeedDelivered = ySpeed * maxSpeed;
         double rotDelivered = rot * DriveConfig.maxAngularSpeed;
+
+        var yaw = getGyroYaw();
         var swerveModuleStates = DriveConfig.kinematics.toSwerveModuleStates(
                 fieldRelative
-                        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
-                                getGyroYaw())
+                        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, yaw)
                         : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
         SwerveDriveKinematics.desaturateWheelSpeeds(
                 swerveModuleStates, maxSpeed);
@@ -235,7 +236,7 @@ public class Drivetrain extends SubsystemBase {
      */
     public void setModuleStates(SwerveModuleState[] desiredStates) {
         SwerveDriveKinematics.desaturateWheelSpeeds(
-                desiredStates, DriveConfig.maxSpeed);
+                desiredStates, DriveConfig.maxDrivetrainSpeed);
         m_frontLeft.setDesiredState(desiredStates[0]);
         m_frontRight.setDesiredState(desiredStates[1]);
         m_backLeft.setDesiredState(desiredStates[2]);
