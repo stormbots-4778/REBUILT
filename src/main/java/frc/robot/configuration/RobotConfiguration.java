@@ -196,8 +196,8 @@ public class RobotConfiguration {
         static {
             shooterLeft1Config.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.0001, 0.0000001, 0.000025)
-                    .iZone(50)
+                    .pid(0.0001, 0.00000001, 0.000025)
+                    .iZone(100)
                     .iMaxAccum(0.2);
             shooterLeft1Config.closedLoop.feedForward.kV(0.0025);
             shooterLeft1Config.smartCurrentLimit(shooterCurrentLimit);
@@ -205,13 +205,13 @@ public class RobotConfiguration {
             shooterLeft1Config.closedLoop.maxMotion.cruiseVelocity(8000);
             shooterLeft1Config.inverted(true);
             shooterLeft1Config.encoder
-                    .quadratureAverageDepth(8)
-                    .quadratureMeasurementPeriod(4);
+                    .uvwAverageDepth(1)
+                    .uvwMeasurementPeriod(8);
 
             shooterLeft2Config.apply(shooterLeft1Config);
 
             shooterRight1Config.apply(shooterLeft1Config);
-            shooterRight1Config.inverted(false);  // left is inverted, reverse here
+            shooterRight1Config.inverted(false); // left is inverted, reverse here
             shooterRight2Config.apply(shooterRight1Config);
 
             hoodLeftConfig.closedLoop
