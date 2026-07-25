@@ -78,11 +78,15 @@ public class Shooters extends SubsystemBase {
     private DoubleTopic shootingTopic = NetworkTableInstance.getDefault().getDoubleTopic("4778Shooting");
     private DoublePublisher shootingPublisher = shootingTopic.publish();
 
+    private DoubleTopic shootCommandTopic = NetworkTableInstance.getDefault().getDoubleTopic("4778ShootCommand");
+    private DoublePublisher shootCommandPublisher = shootCommandTopic.publish();
+
     public double shootSpeedOffset = 0;
     public double hoodOffset = 0;
 
     private void setShooter(double vel) {
         shooters.set(vel);
+        shootCommandPublisher.set(vel);
         shootingPublisher.set(shooters.getVelocity());
     }
 
@@ -109,5 +113,12 @@ public class Shooters extends SubsystemBase {
 
     public Command useDistance(double distance) {
         return useDistance(() -> distance, () -> true, () -> true);
+    }
+
+    public Command usePower(double power) {
+        return run(() -> {
+            setShooter(power);
+            setHood(0);
+        });
     }
 }
