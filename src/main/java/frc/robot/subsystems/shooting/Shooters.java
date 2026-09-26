@@ -70,6 +70,7 @@ public class Shooters extends SubsystemBase {
 
     private final SparkMax hoodLeftMotor = setupSpark(ShooterConfig.hoodLeftCAN, ShooterConfig.hoodLeftConfig);
     private final SparkClosedLoopController hoodLeftController = hoodLeftMotor.getClosedLoopController();
+    private final RelativeEncoder hoodLeftEncoder = hoodLeftMotor.getEncoder();
 
     static {
         setupSpark(ShooterConfig.hoodRightCAN, ShooterConfig.hoodRightConfig);

@@ -47,7 +47,6 @@ public class Feeder extends SubsystemBase {
     }
 
     private void setConveyor(double speed) {
-        System.out.println("Setting conveyor to " + speed);
         conveyorController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl);
     }
 

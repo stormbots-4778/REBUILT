@@ -33,7 +33,6 @@ public class Intake extends SubsystemBase {
 
     private void setPivot(double pos) {
         pivotController.setSetpoint(pos, ControlType.kPosition);
-        System.out.println("Setting pivot to" + pos);
     }
 
     public Command retract() {

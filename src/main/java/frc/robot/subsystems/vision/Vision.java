@@ -23,12 +23,7 @@ public class Vision extends SubsystemBase {
     }
 
     private void useLL(String name, Drivetrain drive, boolean provideGyro) {
-        LimelightHelpers.PoseEstimate llMeasurement = m_alliance == Alliance.Blue
-                ? LimelightHelpers.getBotPoseEstimate_wpiBlue(name)
-                : LimelightHelpers.getBotPoseEstimate_wpiRed(name);
-        if (provideGyro)
-            LimelightHelpers.SetRobotOrientation(name, drive.getHeadingDegrees() + getAllianceAngleOffset(), 0, 0, 0, 0,
-                    0);
+        LimelightHelpers.PoseEstimate llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
         if (llMeasurement.tagCount == 0)
             return;
         drive.usePoseEstimate(llMeasurement.pose, llMeasurement.timestampSeconds);
@@ -40,6 +35,5 @@ public class Vision extends SubsystemBase {
 
     public void passIntoDrivetrain(Drivetrain drive) {
         useLL(VisionConfig.ll4Name, drive, false);
-        useLL(VisionConfig.ll2pName, drive, true);
     }
 }

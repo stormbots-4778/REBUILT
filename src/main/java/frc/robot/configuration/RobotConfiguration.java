@@ -175,7 +175,7 @@ public class RobotConfiguration {
     }
 
     public static final class ShooterConfig {
-        public static final double SHOOTER_IDLE_SPEED = 800;
+        public static final double SHOOTER_IDLE_SPEED = 1000;
 
         public static final int shooterLeft1CAN = 40;
         public static final SparkMaxConfig shooterLeft1Config = new SparkMaxConfig();

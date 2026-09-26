@@ -20,10 +20,9 @@ public class ShootingDistanceTables {
     }
 
     private static final Table tables = new Table()
-            .add(1,   1250, 0.4)
-            .add(1.6, 1350, 0.4)
-            .add(2.4, 1550, 0.2)
-            .add(3.6, 1800, 0.2);
+            .add(1.4, 1300, 0)
+            .add(2.5, 1450, 0.5)
+            .add(3, 1500, 0.5);
 
     public static final InterpolatingDoubleTreeMap shooter = tables.sMap;
     public static final InterpolatingDoubleTreeMap hood = tables.hMap;
