@@ -230,7 +230,7 @@ public class RobotConfiguration {
         public final static double INTAKER_SPEED = 6000;
 
         public static final SparkMaxConfig intakerConfig = new SparkMaxConfig();
-        public static final SparkMaxConfig pivotConfig = new SparkMaxConfig(); // potentially "final"
+        public static final SparkMaxConfig pivotConfig = new SparkMaxConfig();
 
         static {
             intakerConfig.closedLoop
@@ -240,7 +240,7 @@ public class RobotConfiguration {
             intakerConfig.smartCurrentLimit(35);
 
             pivotConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.115, 0, 0);
+                    .pid(0.06, 0, 0);
             pivotConfig.inverted(true);
             pivotConfig.smartCurrentLimit(26);
             pivotConfig.idleMode(IdleMode.kCoast);

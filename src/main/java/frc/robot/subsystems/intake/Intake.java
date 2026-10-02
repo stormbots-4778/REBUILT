@@ -1,7 +1,6 @@
 package frc.robot.subsystems.intake;
 
 import com.revrobotics.PersistMode;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -29,24 +28,28 @@ public class Intake extends SubsystemBase {
 
     private final SparkMax pivotMotor = setupSpark(IntakeConfig.pivotCAN, IntakeConfig.pivotConfig);
     private final SparkClosedLoopController pivotController = pivotMotor.getClosedLoopController();
-    private final RelativeEncoder pivotEncoder = pivotMotor.getEncoder();
 
     private void setPivot(double pos) {
         pivotController.setSetpoint(pos, ControlType.kPosition);
     }
 
+    private void killMotor() {
+        pivotMotor.disable();
+    }
+
     public Command retract() {
-        return run(() -> setPivot(0));
+        return run(() -> setPivot(0)).withTimeout(1.5).finallyDo(this::killMotor);
     }
 
     public Command deploy() {
-        return run(() -> setPivot(9)).withTimeout(0.25).finallyDo(() -> pivotMotor.disable());
+        return run(() -> setPivot(9)).withTimeout(1).finallyDo(this::killMotor);
     }
 
     public Command agitate() {
         return Commands.repeatingSequence(
-                run(() -> setPivot(4)).withTimeout(0.25),
-                run(() -> setPivot(8)).withTimeout(0.25));
+                run(() -> setPivot(0)).withTimeout(0.25),
+                run(() -> setPivot(6)).withTimeout(0.25))
+                .finallyDo(this::killMotor);
     }
 
     public Command intake() {
