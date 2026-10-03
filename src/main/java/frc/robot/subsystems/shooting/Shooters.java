@@ -70,7 +70,6 @@ public class Shooters extends SubsystemBase {
 
     private final SparkMax hoodLeftMotor = setupSpark(ShooterConfig.hoodLeftCAN, ShooterConfig.hoodLeftConfig);
     private final SparkClosedLoopController hoodLeftController = hoodLeftMotor.getClosedLoopController();
-    private final RelativeEncoder hoodLeftEncoder = hoodLeftMotor.getEncoder();
 
     static {
         setupSpark(ShooterConfig.hoodRightCAN, ShooterConfig.hoodRightConfig);
@@ -109,6 +108,12 @@ public class Shooters extends SubsystemBase {
                     ? ShootingDistanceTables.hood.get(distance) + hoodOffset
                     : 0;
             setHood(hoodCommand);
+
+            if (shootCommand > 1000) {
+                System.out.println("distance = " + distance);
+                System.out.println("shoot command = " + shootCommand);
+                System.out.println("hood command = " + hoodCommand);
+            }
         });
     }
 

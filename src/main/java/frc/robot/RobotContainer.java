@@ -137,7 +137,8 @@ public class RobotContainer implements RunnableRobot {
 
         m_controller.a().whileTrue(m_shooter.useDistance(SHOOT_DISTANCE_OVERRIDE_DISTANCE));
 
-        m_controller.rightTrigger().whileTrue(m_feeder.feed().alongWith(m_intake.agitate()));
+        m_controller.rightTrigger()
+                .whileTrue(m_intake.agitate().alongWith(Commands.waitSeconds(0.1).andThen(m_feeder.feed())));
         m_controller.rightBumper().whileTrue(m_intake.agitate());
 
         m_controller.x().and(() -> Math.abs(MathUtil.applyDeadband(m_controller.getLeftX(), 0.1)) == 0)
