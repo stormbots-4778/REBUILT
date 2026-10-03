@@ -37,7 +37,7 @@ public class RobotContainer implements RunnableRobot {
     private final SendableChooser<Command> autoChooser;
 
     private static final boolean USE_FIELD_RELATIVE = true;
-    private static final double SHOOT_DISTANCE_OVERRIDE_DISTANCE = 1.6;
+    private static final double SHOOT_DISTANCE_OVERRIDE_DISTANCE = 3;
     private static final double TURRET_HEADING = Math.PI; // offset autoaiming
 
     private Alliance m_alliance;
